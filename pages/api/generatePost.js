@@ -2,51 +2,47 @@ import { getSession, withApiAuthRequired } from '@auth0/nextjs-auth0';
 import { Configuration, OpenAIApi } from 'openai';
 import clientPromise from '../../lib/mongodb';
 
+// 使用Auth0保护API路由
 export default withApiAuthRequired(async function handler(req, res) {
+  // 获取当前用户的会话
   const { user } = await getSession(req, res);
+  // 获取MongoDB客户端
   const client = await clientPromise;
+  // 选择数据库
   const db = client.db('BlogStandard');
+  // 查找当前用户的资料
   const userProfile = await db.collection('users').findOne({
     auth0Id: user.sub,
   });
 
+  // 如果用户没有可用的令牌，返回403状态码
   if (!userProfile?.availableTokens) {
     res.status(403);
     return;
   }
 
+  // 配置OpenAI API
   const config = new Configuration({
     apiKey: process.env.OPENAI_API_KEY,
   });
   const openai = new OpenAIApi(config);
 
+  // 从请求体中获取主题和关键词
   const { topic, keywords } = req.body;
 
+  // 如果主题或关键词为空，返回422状态码
   if (!topic || !keywords) {
     res.status(422);
     return;
   }
 
+  // 如果主题或关键词的长度超过80字符，返回422状态码
   if (topic.length > 80 || keywords.length > 80) {
     res.status(422);
     return;
   }
 
-  /*const response = await openai.createCompletion({
-    model: 'text-davinci-003',
-    temperature: 0,
-    max_tokens: 3600,
-    prompt: `Write a long and detailed SEO-friendly blog post about ${topic}, that targets the following comma-separated keywords: ${keywords}.
-    The content should be formatted in SEO-friendly HTML.
-    The response must also include appropriate HTML title and meta description content.
-    The return format must be stringified JSON in the following format:
-    {
-      "postContent": post content here
-      "title": title goes here
-      "metaDescription": meta description goes here
-    }`,
-  });*/
-
+  // 使用OpenAI的gpt-3.5-turbo模型生成博客内容
   const postContentResult = await openai.createChatCompletion({
     model: 'gpt-3.5-turbo',
     messages: [
@@ -64,8 +60,10 @@ export default withApiAuthRequired(async function handler(req, res) {
     temperature: 0,
   });
 
+  // 获取生成的博客内容
   const postContent = postContentResult.data.choices[0]?.message.content;
 
+  // 使用OpenAI生成博客标题
   const titleResult = await openai.createChatCompletion({
     model: 'gpt-3.5-turbo',
     messages: [
@@ -91,6 +89,7 @@ export default withApiAuthRequired(async function handler(req, res) {
     temperature: 0,
   });
 
+  // 使用OpenAI生成SEO友好的meta描述
   const metaDescriptionResult = await openai.createChatCompletion({
     model: 'gpt-3.5-turbo',
     messages: [
@@ -117,14 +116,17 @@ export default withApiAuthRequired(async function handler(req, res) {
     temperature: 0,
   });
 
+  // 获取生成的标题和meta描述
   const title = titleResult.data.choices[0]?.message.content;
   const metaDescription =
     metaDescriptionResult.data.choices[0]?.message.content;
 
+  // 打印生成的内容、标题和meta描述
   console.log('POST CONTENT: ', postContent);
   console.log('TITLE: ', title);
   console.log('META DESCRIPTION: ', metaDescription);
 
+  // 更新用户的可用令牌数量（注释掉的代码）
   /*await db.collection('users').updateOne(
   {
     auth0Id: user.sub,
@@ -136,6 +138,7 @@ export default withApiAuthRequired(async function handler(req, res) {
   }
 );*/
 
+  // 将生成的博客内容插入到数据库中
   const post = await db.collection('posts').insertOne({
     postContent: postContent || '',
     title: title || '',
@@ -146,6 +149,10 @@ export default withApiAuthRequired(async function handler(req, res) {
     created: new Date(),
   });
 
+  // 打印插入的博客内容
+  console.log("POST:", post);
+
+  // 返回生成的博客内容的ID
   res.status(200).json({
     postId: post.insertedId,
   });

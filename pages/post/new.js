@@ -1,15 +1,15 @@
-import { withPageAuthRequired } from '@auth0/nextjs-auth0';
-import { faBrain } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { useRouter } from 'next/router';
-import { useState } from 'react';
-import { AppLayout } from '../../components/AppLayout';
-import { getAppProps } from '../../utils/getAppProps';
+import { withPageAuthRequired } from "@auth0/nextjs-auth0";
+import { faBrain } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useRouter } from "next/router";
+import { useState } from "react";
+import { AppLayout } from "../../components/AppLayout";
+import { getAppProps } from "../../utils/getAppProps";
 
 export default function NewPost(props) {
   const router = useRouter();
-  const [topic, setTopic] = useState('');
-  const [keywords, setKeywords] = useState('');
+  const [topic, setTopic] = useState("");
+  const [keywords, setKeywords] = useState("");
   const [generating, setGenerating] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -17,14 +17,14 @@ export default function NewPost(props) {
     setGenerating(true);
     try {
       const response = await fetch(`/api/generatePost`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'content-type': 'application/json',
+          "content-type": "application/json",
         },
         body: JSON.stringify({ topic, keywords }),
       });
       const json = await response.json();
-      console.log('RESULT: ', json);
+      console.log("RESULT: ", json);
       if (json?.postId) {
         router.push(`/post/${json.postId}`);
       }
@@ -68,9 +68,7 @@ export default function NewPost(props) {
                 onChange={(e) => setKeywords(e.target.value)}
                 maxLength={80}
               />
-              <small className="block mb-2">
-                Separate keywords with a comma
-              </small>
+              <small className="block mb-2">Separate keywords with comma</small>
             </div>
             <button
               type="submit"
@@ -97,7 +95,7 @@ export const getServerSideProps = withPageAuthRequired({
     if (!props.availableTokens) {
       return {
         redirect: {
-          destination: '/token-topup',
+          destination: "/token-topup",
           permanent: false,
         },
       };

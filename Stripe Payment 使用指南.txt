@@ -1,0 +1,5 @@
+https://auth0.auth0.com/u/login/identifier?state=hKFo2SBTN3hMU1d4LVNRWmlYZG5wQzRpVmozRkFSYlIyRzBHNaFur3VuaXZlcnNhbC1sb2dpbqN0aWTZIEx4Ti0xSEMxOWc2ajdxV3RKS0NjYkllNTlJbkRuMEp6o2NpZNkgekVZZnBvRnpVTUV6aWxoa0hpbGNXb05rckZmSjNoQUk
+
+.\stripe login
+
+.\stripe listen --forward-to localhost:3000/api/webhooks/stripe
