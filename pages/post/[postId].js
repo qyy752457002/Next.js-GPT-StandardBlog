@@ -1,88 +1,90 @@
-import { getSession, withPageAuthRequired } from '@auth0/nextjs-auth0';
-import { faHashtag } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { ObjectId } from 'mongodb';
-import { useRouter } from 'next/router';
-import { useContext, useState } from 'react';
-import { AppLayout } from '../../components/AppLayout';
-import PostsContext from '../../context/postsContext';
-import clientPromise from '../../lib/mongodb';
-import { getAppProps } from '../../utils/getAppProps';
+import { getSession, withPageAuthRequired } from '@auth0/nextjs-auth0'; // 导入 Auth0 相关函数
+import { faHashtag } from '@fortawesome/free-solid-svg-icons'; // 导入 FontAwesome 图标
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'; // 导入 FontAwesome 组件
+import { ObjectId } from 'mongodb'; // 导入 MongoDB 的 ObjectId
+import { useRouter } from 'next/router'; // 导入 Next.js 路由钩子
+import { useContext, useState } from 'react'; // 导入 React 的钩子
+import { AppLayout } from '../../components/AppLayout'; // 导入自定义的布局组件
+import PostsContext from '../../context/postsContext'; // 导入自定义的帖子上下文
+import clientPromise from '../../lib/mongodb'; // 导入 MongoDB 客户端承诺
+import { getAppProps } from '../../utils/getAppProps'; // 导入自定义的应用属性获取函数
 
 export default function Post(props) {
-  console.log('PROPS: ', props);
-  const router = useRouter();
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const { deletePost } = useContext(PostsContext);
+  console.log('PROPS: ', props); // 打印属性以进行调试
+  const router = useRouter(); // 使用 Next.js 路由钩子
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false); // 状态钩子用于显示删除确认
+  const { deletePost } = useContext(PostsContext); // 从上下文中获取删除帖子函数
 
-  const handleDeleteConfirm = async () => {
+  const handleDeleteConfirm = async () => { // 处理删除确认
     try {
       const response = await fetch(`/api/deletePost`, {
         method: 'POST',
         headers: {
           'content-type': 'application/json',
         },
-        body: JSON.stringify({ postId: props.id }),
+        body: JSON.stringify({ postId: props.id }), // 发送要删除帖子的 ID
       });
       const json = await response.json();
-      if (json.success) {
-        deletePost(props.id);
-        router.replace(`/post/new`);
+      if (json.success) { // 如果删除成功
+        deletePost(props.id); // 从上下文中删除帖子
+        router.replace(`/post/new`); // 重定向到新帖子页面
       }
-    } catch (e) {}
+    } catch (e) {
+      console.error(e); // 捕获并打印错误
+    }
   };
 
   return (
     <div className="overflow-auto h-full">
       <div className="max-w-screen-sm mx-auto">
         <div className="text-sm font-bold mt-6 p-2 bg-stone-200 rounded-sm">
-          SEO title and meta description
+          SEO title and meta description {/* SEO 标题和元描述 */}
         </div>
         <div className="p-4 my-2 border border-stone-200 rounded-md">
-          <div className="text-blue-600 text-2xl font-bold">{props.title}</div>
-          <div className="mt-2">{props.metaDescription}</div>
+          <div className="text-blue-600 text-2xl font-bold">{props.title}</div> {/* 显示帖子标题 */}
+          <div className="mt-2">{props.metaDescription}</div> {/* 显示帖子元描述 */}
         </div>
         <div className="text-sm font-bold mt-6 p-2 bg-stone-200 rounded-sm">
-          Keywords
+          Keywords {/* 关键词 */}
         </div>
         <div className="flex flex-wrap pt-2 gap-1">
           {props.keywords.split(',').map((keyword, i) => (
             <div key={i} className="p-2 rounded-full bg-slate-800 text-white">
-              <FontAwesomeIcon icon={faHashtag} /> {keyword}
+              <FontAwesomeIcon icon={faHashtag} /> {keyword} {/* 显示关键词 */}
             </div>
           ))}
         </div>
         <div className="text-sm font-bold mt-6 p-2 bg-stone-200 rounded-sm">
-          Blog post
+          Blog post {/* 博客文章 */}
         </div>
-        <div dangerouslySetInnerHTML={{ __html: props.postContent || '' }} />
+        <div dangerouslySetInnerHTML={{ __html: props.postContent || '' }} /> {/* 显示帖子内容 */}
         <div className="my-4">
           {!showDeleteConfirm && (
             <button
               className="btn bg-red-600 hover:bg-red-700"
               onClick={() => setShowDeleteConfirm(true)}
             >
-              Delete post
+              Delete post {/* 显示删除按钮 */}
             </button>
           )}
           {!!showDeleteConfirm && (
             <div>
               <p className="p-2 bg-red-300 text-center">
                 Are you sure you want to delete this post? This action is
-                irreversible
+                irreversible {/* 显示删除确认消息 */}
               </p>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() => setShowDeleteConfirm(false)}
                   className="btn bg-stone-600 hover:bg-stone-700"
                 >
-                  cancel
+                  cancel {/* 取消删除按钮 */}
                 </button>
                 <button
                   onClick={handleDeleteConfirm}
                   className="btn bg-red-600 hover:bg-red-700"
                 >
-                  confirm delete
+                  confirm delete {/* 确认删除按钮 */}
                 </button>
               </div>
             </div>
@@ -94,27 +96,27 @@ export default function Post(props) {
 }
 
 Post.getLayout = function getLayout(page, pageProps) {
-  return <AppLayout {...pageProps}>{page}</AppLayout>;
+  return <AppLayout {...pageProps}>{page}</AppLayout>; // 使用自定义布局组件
 };
 
 export const getServerSideProps = withPageAuthRequired({
   async getServerSideProps(ctx) {
-    const props = await getAppProps(ctx);
-    const userSession = await getSession(ctx.req, ctx.res);
-    const client = await clientPromise;
-    const db = client.db('BlogStandard');
+    const props = await getAppProps(ctx); // 获取应用属性
+    const userSession = await getSession(ctx.req, ctx.res); // 获取用户会话
+    const client = await clientPromise; // 获取 MongoDB 客户端
+    const db = client.db('BlogStandard'); // 连接到指定数据库
     const user = await db.collection('users').findOne({
-      auth0Id: userSession.user.sub,
+      auth0Id: userSession.user.sub, // 查找当前用户
     });
     const post = await db.collection('posts').findOne({
-      _id: new ObjectId(ctx.params.postId),
-      userId: user._id,
+      _id: new ObjectId(ctx.params.postId), // 查找指定 ID 的帖子
+      userId: user._id, // 确保帖子属于当前用户
     });
 
-    if (!post) {
+    if (!post) { // 如果帖子不存在
       return {
         redirect: {
-          destination: '/post/new',
+          destination: '/post/new', // 重定向到新帖子页面
           permanent: false,
         },
       };
@@ -122,14 +124,15 @@ export const getServerSideProps = withPageAuthRequired({
 
     return {
       props: {
-        id: ctx.params.postId,
-        postContent: post.postContent,
-        title: post.title,
-        metaDescription: post.metaDescription,
-        keywords: post.keywords,
-        postCreated: post.created.toString(),
-        ...props,
+        id: ctx.params.postId, // 帖子 ID
+        postContent: post.postContent, // 帖子内容
+        title: post.title, // 帖子标题
+        metaDescription: post.metaDescription, // 帖子元描述
+        keywords: post.keywords, // 帖子关键词
+        postCreated: post.created.toString(), // 帖子创建时间
+        ...props, // 其他属性
       },
     };
   },
 });
+
