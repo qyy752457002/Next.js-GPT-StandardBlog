@@ -9,6 +9,7 @@ export default PostsContext;
 // 定义posts的reducer函数，用于处理不同的动作
 function postsReducer(state, action) {
   switch (action.type) {
+
     case 'addPosts': {
       // 处理添加新posts的动作
       const newPosts = [...state];
@@ -21,6 +22,7 @@ function postsReducer(state, action) {
       });
       return newPosts;
     }
+    
     case 'deletePost': {
       // 处理删除post的动作
       const newPosts = [];
