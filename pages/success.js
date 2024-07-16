@@ -6,7 +6,7 @@ import { AppLayout } from "../components/AppLayout";
 import { getAppProps } from "../utils/getAppProps";
 
 // 定义Success组件
-export default function Success() {
+export default function Success(props) {
   // 返回一个包含感谢信息的div
   return (
     <div>

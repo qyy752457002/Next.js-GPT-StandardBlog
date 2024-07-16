@@ -95,6 +95,8 @@ export default function Post(props) {
   );
 }
 
+// page 表示页面组件的React元素，对应 Post() 组件
+// pageProps 表示传递给页面组件的属性，对应 getServerSideProps返回的props
 Post.getLayout = function getLayout(page, pageProps) {
   return <AppLayout {...pageProps}>{page}</AppLayout>; // 使用自定义布局组件
 };
@@ -135,4 +137,27 @@ export const getServerSideProps = withPageAuthRequired({
     };
   },
 });
+
+/*
+  Post.getLayout 与 getServerSideProps的作用: 
+
+  - Post.getLayout用于为Post页面定义自定义布局。
+
+  - getServerSideProps用于在服务器端获取页面数据，并在页面加载时传递这些数据。通过withPageAuthRequired包装，确保只有经过身份验证的用户才能访问该页面。
+*/
+
+/*
+  底层逻辑: 
+
+  第一步. getServerSideProps：在请求时运行，获取页面所需的数据，并返回一个包含props对象的对象。
+
+  第二步. props传递给页面组件：getServerSideProps返回的props对象会作为页面组件 Post 的属性。
+
+  第三步. getLayout函数：定义页面的布局。在这个函数中，pageProps包含了从getServerSideProps返回的props。
+
+  -------------------------------------------------------------------------------------------------------
+
+  综上所述，getServerSideProps返回的props会传递给页面组件 Post，然后通过getLayout函数，props会进一步传递给布局组件。
+  这种机制确保了页面在加载时能够接收到所有必要的数据，并且可以将这些数据传递给布局组件以便于渲染。
+*/
 

@@ -6,7 +6,7 @@ import { AppLayout } from "../components/AppLayout";
 import { getAppProps } from "../utils/getAppProps";
 
 // 导出 TokenTopup 函数，用于处理 TOKEN 充值
-export default function TokenTopup() {
+export default function TokenTopup(props) {
   // 定义处理点击事件的函数
   const handleClick = async () => {
     // 发起 POST 请求到 /api/addTokens
