@@ -1,5 +1,5 @@
-import { useRouter } from 'next/router';
-import React, { useCallback, useReducer, useState } from 'react';
+import { useRouter } from "next/router";
+import React, { useCallback, useReducer, useState } from "react";
 
 // 创建一个上下文，用于在整个应用中共享posts相关的数据和操作
 const PostsContext = React.createContext({});
@@ -9,10 +9,19 @@ export default PostsContext;
 // 定义posts的reducer函数，用于处理不同的动作
 function postsReducer(state, action) {
   switch (action.type) {
+    // 这儿的state代表的是当前posts的状态数组，action代表的是从组件中传递过来的动作
 
-    case 'addPosts': {
+    case "addPosts": {
       // 处理添加新posts的动作
       const newPosts = [...state];
+        /*
+            action里面的posts来自
+            
+            dispatch({
+              type: "addPosts",
+              posts: postsFromSSR,
+            });
+        */
       action.posts.forEach((post) => {
         // 检查新post是否已经存在，避免重复添加
         const exists = newPosts.find((p) => p._id === post._id);
@@ -22,11 +31,19 @@ function postsReducer(state, action) {
       });
       return newPosts;
     }
-    
-    case 'deletePost': {
+
+    case "deletePost": {
       // 处理删除post的动作
       const newPosts = [];
       state.forEach((post) => {
+        /*
+            action里面的postId来自
+
+            dispatch({
+              type: 'deletePost',
+              postId,
+            });
+        */
         if (post._id !== action.postId) {
           newPosts.push(post);
         }
@@ -41,6 +58,7 @@ function postsReducer(state, action) {
 // 定义PostsProvider组件，用于提供posts相关的上下文数据
 export const PostsProvider = ({ children }) => {
   // 使用useReducer来管理posts状态
+  // 初始状态为空数组 []，因为还没有任何posts
   const [posts, dispatch] = useReducer(postsReducer, []);
   // 使用useState来管理是否没有更多posts的状态
   const [noMorePosts, setNoMorePosts] = useState(false);
@@ -48,7 +66,7 @@ export const PostsProvider = ({ children }) => {
   // 定义deletePost回调，用于删除指定的post
   const deletePost = useCallback((postId) => {
     dispatch({
-      type: 'deletePost',
+      type: "deletePost",
       postId,
     });
   }, []);
@@ -56,7 +74,7 @@ export const PostsProvider = ({ children }) => {
   // 定义setPostsFromSSR回调，用于设置从服务器端渲染获取的posts
   const setPostsFromSSR = useCallback((postsFromSSR = []) => {
     dispatch({
-      type: 'addPosts',
+      type: "addPosts",
       posts: postsFromSSR,
     });
   }, []);
@@ -65,9 +83,9 @@ export const PostsProvider = ({ children }) => {
   const getPosts = useCallback(
     async ({ lastPostDate, getNewerPosts = false }) => {
       const result = await fetch(`/api/getPosts`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'content-type': 'application/json',
+          "content-type": "application/json",
         },
         body: JSON.stringify({ lastPostDate, getNewerPosts }),
       });
@@ -77,7 +95,7 @@ export const PostsProvider = ({ children }) => {
         setNoMorePosts(true); // 如果获取的posts少于5个，设置没有更多posts
       }
       dispatch({
-        type: 'addPosts',
+        type: "addPosts",
         posts: postsResult,
       });
     },
