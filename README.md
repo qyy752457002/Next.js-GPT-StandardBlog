@@ -1,13 +1,9 @@
 # Blog Standard
+![image](https://github.com/user-attachments/assets/c4a654d5-3ef2-4534-92de-88f095ea1758)
+![image](https://github.com/user-attachments/assets/a8114d78-dc47-4c09-8b20-8a1bac6dd609)
+![image](https://github.com/user-attachments/assets/f64d561c-ccd2-4d98-916a-f16f08656194)
 
-This is the completed code repo for the Next JS & OpenAI course on udemy, available here:
 
-[Next JS & Open AI / GPT: Next-generation Next JS & AI apps](https://www.udemy.com/course/next-js-ai/?referralCode=CF9492ACD4991930F84E)
-
-![image](https://github.com/qyy752457002/Next.js-ChatGPT-Course/assets/88706924/8b3e1d19-f0b5-44b8-9e04-0f8db0997b25)
-![image](https://github.com/qyy752457002/Next.js-ChatGPT-Course/assets/88706924/9348d286-7ff4-4df9-8283-a030e2aec132)
-![image](https://github.com/qyy752457002/Next.js-ChatGPT-Course/assets/88706924/2e6cbf02-6781-422c-b256-76d61fd26a35)
-![image](https://github.com/qyy752457002/Next.js-ChatGPT-Course/assets/88706924/f41656ee-e373-446c-a134-9dec63d49b8a)
 
 
 
