@@ -1,4 +1,3 @@
-import { useRouter } from "next/router";
 import React, { useCallback, useReducer, useState } from "react";
 
 // 创建一个上下文，用于在整个应用中共享posts相关的数据和操作

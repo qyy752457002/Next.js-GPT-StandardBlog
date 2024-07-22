@@ -1,6 +1,6 @@
-import { getSession, withApiAuthRequired } from '@auth0/nextjs-auth0';
-import { Configuration, OpenAIApi } from 'openai';
-import clientPromise from '../../lib/mongodb';
+import { getSession, withApiAuthRequired } from "@auth0/nextjs-auth0";
+import { Configuration, OpenAIApi } from "openai";
+import clientPromise from "../../lib/mongodb";
 
 // 使用Auth0保护API路由
 export default withApiAuthRequired(async function handler(req, res) {
@@ -9,9 +9,9 @@ export default withApiAuthRequired(async function handler(req, res) {
   // 获取MongoDB客户端
   const client = await clientPromise;
   // 选择数据库
-  const db = client.db('BlogStandard');
+  const db = client.db("BlogStandard");
   // 查找当前用户的资料
-  const userProfile = await db.collection('users').findOne({
+  const userProfile = await db.collection("users").findOne({
     auth0Id: user.sub,
   });
 
@@ -44,14 +44,14 @@ export default withApiAuthRequired(async function handler(req, res) {
 
   // 使用OpenAI的gpt-3.5-turbo模型生成博客内容
   const postContentResult = await openai.createChatCompletion({
-    model: 'gpt-3.5-turbo',
+    model: "gpt-3.5-turbo",
     messages: [
       {
-        role: 'system',
-        content: 'You are a blog post generator.',
+        role: "system",
+        content: "You are a blog post generator.",
       },
       {
-        role: 'user',
+        role: "user",
         content: `Write a long and detailed SEO-friendly blog post about ${topic}, that targets the following comma-separated keywords: ${keywords}. 
       The response should be formatted in SEO-friendly HTML, 
       limited to the following HTML tags: p, h1, h2, h3, h4, h5, h6, strong, i, ul, li, ol.`,
@@ -65,25 +65,25 @@ export default withApiAuthRequired(async function handler(req, res) {
 
   // 使用OpenAI生成博客标题
   const titleResult = await openai.createChatCompletion({
-    model: 'gpt-3.5-turbo',
+    model: "gpt-3.5-turbo",
     messages: [
       {
-        role: 'system',
-        content: 'You are a blog post generator.',
+        role: "system",
+        content: "You are a blog post generator.",
       },
       {
-        role: 'user',
+        role: "user",
         content: `Write a long and detailed SEO-friendly blog post about ${topic}, that targets the following comma-separated keywords: ${keywords}. 
       The response should be formatted in SEO-friendly HTML, 
       limited to the following HTML tags: p, h1, h2, h3, h4, h5, h6, strong, i, ul, li, ol.`,
       },
       {
-        role: 'assistant',
+        role: "assistant",
         content: postContent,
       },
       {
-        role: 'user',
-        content: 'Generate appropriate title tag text for the above blog post',
+        role: "user",
+        content: "Generate appropriate title tag text for the above blog post",
       },
     ],
     temperature: 0,
@@ -91,26 +91,26 @@ export default withApiAuthRequired(async function handler(req, res) {
 
   // 使用OpenAI生成SEO友好的meta描述
   const metaDescriptionResult = await openai.createChatCompletion({
-    model: 'gpt-3.5-turbo',
+    model: "gpt-3.5-turbo",
     messages: [
       {
-        role: 'system',
-        content: 'You are a blog post generator.',
+        role: "system",
+        content: "You are a blog post generator.",
       },
       {
-        role: 'user',
+        role: "user",
         content: `Write a long and detailed SEO-friendly blog post about ${topic}, that targets the following comma-separated keywords: ${keywords}. 
       The response should be formatted in SEO-friendly HTML, 
       limited to the following HTML tags: p, h1, h2, h3, h4, h5, h6, strong, i, ul, li, ol.`,
       },
       {
-        role: 'assistant',
+        role: "assistant",
         content: postContent,
       },
       {
-        role: 'user',
+        role: "user",
         content:
-          'Generate SEO-friendly meta description content for the above blog post',
+          "Generate SEO-friendly meta description content for the above blog post",
       },
     ],
     temperature: 0,
@@ -118,13 +118,12 @@ export default withApiAuthRequired(async function handler(req, res) {
 
   // 获取生成的标题和meta描述
   const title = titleResult.data.choices[0]?.message.content;
-  const metaDescription =
-    metaDescriptionResult.data.choices[0]?.message.content;
+  const metaDescription = metaDescriptionResult.data.choices[0]?.message.content;
 
   // 打印生成的内容、标题和meta描述
-  console.log('POST CONTENT: ', postContent);
-  console.log('TITLE: ', title);
-  console.log('META DESCRIPTION: ', metaDescription);
+  console.log("POST CONTENT: ", postContent);
+  console.log("TITLE: ", title);
+  console.log("META DESCRIPTION: ", metaDescription);
 
   // 更新用户的可用令牌数量（注释掉的代码）
   /*await db.collection('users').updateOne(
@@ -139,10 +138,10 @@ export default withApiAuthRequired(async function handler(req, res) {
 );*/
 
   // 将生成的博客内容插入到数据库中
-  const post = await db.collection('posts').insertOne({
-    postContent: postContent || '',
-    title: title || '',
-    metaDescription: metaDescription || '',
+  const post = await db.collection("posts").insertOne({
+    postContent: postContent || "",
+    title: title || "",
+    metaDescription: metaDescription || "",
     topic,
     keywords,
     userId: userProfile._id,

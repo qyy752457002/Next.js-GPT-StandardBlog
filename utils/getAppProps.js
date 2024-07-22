@@ -1,5 +1,5 @@
-import { getSession } from '@auth0/nextjs-auth0';
-import clientPromise from '../lib/mongodb';
+import { getSession } from "@auth0/nextjs-auth0";
+import clientPromise from "../lib/mongodb";
 
 // 获取应用程序的属性
 export const getAppProps = async (ctx) => {
@@ -8,9 +8,9 @@ export const getAppProps = async (ctx) => {
   // 获取MongoDB客户端
   const client = await clientPromise;
   // 选择数据库
-  const db = client.db('BlogStandard');
+  const db = client.db("BlogStandard");
   // 查找与用户会话关联的用户信息
-  const user = await db.collection('users').findOne({
+  const user = await db.collection("users").findOne({
     auth0Id: userSession.user.sub,
   });
 
@@ -24,7 +24,7 @@ export const getAppProps = async (ctx) => {
 
   // 查找用户的最新5篇帖子
   const posts = await db
-    .collection('posts')
+    .collection("posts")
     .find({
       userId: user._id, // 用户ID匹配
     })
