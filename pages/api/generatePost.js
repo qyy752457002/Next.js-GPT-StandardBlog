@@ -118,24 +118,25 @@ export default withApiAuthRequired(async function handler(req, res) {
 
   // 获取生成的标题和meta描述
   const title = titleResult.data.choices[0]?.message.content;
-  const metaDescription = metaDescriptionResult.data.choices[0]?.message.content;
+  const metaDescription =
+    metaDescriptionResult.data.choices[0]?.message.content;
 
   // 打印生成的内容、标题和meta描述
   console.log("POST CONTENT: ", postContent);
   console.log("TITLE: ", title);
   console.log("META DESCRIPTION: ", metaDescription);
 
-  // 更新用户的可用令牌数量（注释掉的代码）
-  /*await db.collection('users').updateOne(
-  {
-    auth0Id: user.sub,
-  },
-  {
-    $inc: {
-      availableTokens: -1,
+  // 更新用户的可用令牌数量
+  await db.collection("users").updateOne(
+    {
+      auth0Id: user.sub,
     },
-  }
-);*/
+    {
+      $inc: {
+        availableTokens: -10,
+      },
+    }
+  );
 
   // 将生成的博客内容插入到数据库中
   const post = await db.collection("posts").insertOne({

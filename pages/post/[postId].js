@@ -10,7 +10,6 @@ import clientPromise from '../../lib/mongodb'; // 导入 MongoDB 客户端承诺
 import { getAppProps } from '../../utils/getAppProps'; // 导入自定义的应用属性获取函数
 
 export default function Post(props) {
-  console.log('PROPS: ', props); // 打印属性以进行调试
   const router = useRouter(); // 使用 Next.js 路由钩子
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false); // 状态钩子用于显示删除确认
   const { deletePost } = useContext(PostsContext); // 从上下文中获取删除帖子函数

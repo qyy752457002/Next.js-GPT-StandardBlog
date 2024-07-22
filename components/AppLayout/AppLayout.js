@@ -57,7 +57,12 @@ export const AppLayout = ({
           {!noMorePosts && (
             <div
               onClick={() => {
-                getPosts({ lastPostDate: posts[posts.length - 1].created }); // 获取更多帖子
+                if ( posts.length > 0 ) {
+                  getPosts({ lastPostDate: posts[posts.length - 1].created }); // 获取更多帖子
+                } else {
+                  // Handle the case where there are no posts, e.g., fetch posts from the beginning or show a message.
+                  console.warn('No posts available to load more.');
+                }
               }}
               className="hover:underline text-sm text-slate-400 text-center cursor-pointer mt-4"
             >
