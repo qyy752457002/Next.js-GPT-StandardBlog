@@ -16,7 +16,7 @@ export default function Post(props) {
 
   const handleDeleteConfirm = async () => { // 处理删除确认
     try {
-      const response = await fetch(`/api/deletePost`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_AUTH0_BASE_URL}/api/deletePost`, {
         method: 'POST',
         headers: {
           'content-type': 'application/json',

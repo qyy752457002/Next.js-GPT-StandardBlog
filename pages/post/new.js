@@ -16,7 +16,7 @@ export default function NewPost(props) {
     e.preventDefault(); // 阻止表单默认提交行为
     setGenerating(true); // 设置生成状态为true
     try {
-      const response = await fetch(`/api/generatePost`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_AUTH0_BASE_URL}/api/generatePost`, {
         method: "POST",
         headers: {
           "content-type": "application/json",
