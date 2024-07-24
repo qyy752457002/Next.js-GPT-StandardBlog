@@ -10,7 +10,7 @@ export default function TokenTopup(props) {
   // 定义处理点击事件的函数
   const handleClick = async () => {
     // 发起 POST 请求到 /api/addTokens
-    const result = await fetch(`${process.env.NEXT_PUBLIC_AUTH0_BASE_URL}/api/addTokens`, {
+    const result = await fetch(`/api/addTokens`, {
       method: "POST",
     });
     
