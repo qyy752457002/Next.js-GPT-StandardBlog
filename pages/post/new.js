@@ -12,27 +12,73 @@ export default function NewPost(props) {
   const [keywords, setKeywords] = useState(""); // 定义状态变量keywords和更新函数setKeywords
   const [generating, setGenerating] = useState(false); // 定义状态变量generating和更新函数setGenerating
 
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault(); // 阻止表单默认提交行为
+  //   setGenerating(true); // 设置生成状态为true
+  //   try {
+  //     const response = await fetch(`/api/generatePost`, {
+  //       method: "POST",
+  //       headers: {
+  //         "content-type": "application/json",
+  //       },
+  //       body: JSON.stringify({ topic, keywords }), // 发送请求主体
+  //     });
+  //     const json = await response.json(); // 解析响应JSON
+  //     console.log("RESULT: ", json); // 打印结果
+  //     if (json?.postId) {
+  //       router.push(`/post/${json.postId}`); // 跳转到新生成的帖子页面
+  //     }
+  //   } catch (e) {
+  //     setGenerating(false); // 发生错误时重置生成状态
+  //   }
+  // };
+
   const handleSubmit = async (e) => {
-    e.preventDefault(); // 阻止表单默认提交行为
-    setGenerating(true); // 设置生成状态为true
+    e.preventDefault();
+    setGenerating(true);
+  
+    const fetchWithRetry = async (url, options, retries = 3, backoff = 300) => {
+      try {
+        const response = await fetch(url, options);
+        if (!response.ok) {
+          if (response.status === 429 && retries > 0) {
+            await new Promise(resolve => setTimeout(resolve, backoff));
+            return fetchWithRetry(url, options, retries - 1, backoff * 2);
+          } else {
+            throw new Error(`Request failed with status ${response.status}`);
+          }
+        }
+        return response;
+      } catch (error) {
+        if (retries > 0) {
+          await new Promise(resolve => setTimeout(resolve, backoff));
+          return fetchWithRetry(url, options, retries - 1, backoff * 2);
+        } else {
+          throw error;
+        }
+      }
+    };
+  
     try {
-      const response = await fetch(`/api/generatePost`, {
+      const response = await fetchWithRetry(`/api/generatePost`, {
         method: "POST",
         headers: {
           "content-type": "application/json",
         },
-        body: JSON.stringify({ topic, keywords }), // 发送请求主体
+        body: JSON.stringify({ topic, keywords }),
       });
-      const json = await response.json(); // 解析响应JSON
-      console.log("RESULT: ", json); // 打印结果
+  
+      const json = await response.json();
+      console.log("RESULT: ", json);
       if (json?.postId) {
-        router.push(`/post/${json.postId}`); // 跳转到新生成的帖子页面
+        router.push(`/post/${json.postId}`);
       }
-    } catch (e) {
-      setGenerating(false); // 发生错误时重置生成状态
+    } catch (error) {
+      console.error("Error generating post:", error);
+      setGenerating(false);
     }
   };
-
+  
   return (
     <div className="h-full overflow-hidden">
       {!!generating && ( // 生成中显示的内容
