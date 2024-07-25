@@ -12,54 +12,48 @@ export default function NewPost(props) {
   const [keywords, setKeywords] = useState(""); // 定义状态变量keywords和更新函数setKeywords
   const [generating, setGenerating] = useState(false); // 定义状态变量generating和更新函数setGenerating
 
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault(); // 阻止表单默认提交行为
-  //   setGenerating(true); // 设置生成状态为true
-  //   try {
-  //     const response = await fetch(`/api/generatePost`, {
-  //       method: "POST",
-  //       headers: {
-  //         "content-type": "application/json",
-  //       },
-  //       body: JSON.stringify({ topic, keywords }), // 发送请求主体
-  //     });
-  //     const json = await response.json(); // 解析响应JSON
-  //     console.log("RESULT: ", json); // 打印结果
-  //     if (json?.postId) {
-  //       router.push(`/post/${json.postId}`); // 跳转到新生成的帖子页面
-  //     }
-  //   } catch (e) {
-  //     setGenerating(false); // 发生错误时重置生成状态
-  //   }
-  // };
 
+  // 定义一个异步函数，用于处理表单提交
   const handleSubmit = async (e) => {
+    // 阻止表单默认提交行为
     e.preventDefault();
+    // 设置生成状态为true
     setGenerating(true);
   
-    const fetchWithRetry = async (url, options, retries = 3, backoff = 300) => {
+    // 定义一个异步函数，用于带有重试机制的fetch请求
+    const fetchWithRetry = async (url, options, retries = 100, backoff = 1000) => {
       try {
+        // 发起fetch请求
         const response = await fetch(url, options);
+        // 如果请求失败
         if (!response.ok) {
+          // 如果状态码为429，表示请求过多，进行重试
           if (response.status === 429 && retries > 0) {
+            // 等待一段时间后再次发起请求
             await new Promise(resolve => setTimeout(resolve, backoff));
             return fetchWithRetry(url, options, retries - 1, backoff * 2);
           } else {
+            // 否则抛出错误
             throw new Error(`Request failed with status ${response.status}`);
           }
         }
+        // 返回响应
         return response;
       } catch (error) {
+        // 如果还有重试次数
         if (retries > 0) {
+          // 等待一段时间后再次发起请求
           await new Promise(resolve => setTimeout(resolve, backoff));
           return fetchWithRetry(url, options, retries - 1, backoff * 2);
         } else {
+          // 否则抛出错误
           throw error;
         }
       }
     };
   
     try {
+      // 发起带有重试机制的fetch请求
       const response = await fetchWithRetry(`/api/generatePost`, {
         method: "POST",
         headers: {
@@ -68,12 +62,15 @@ export default function NewPost(props) {
         body: JSON.stringify({ topic, keywords }),
       });
   
+      // 解析响应
       const json = await response.json();
       console.log("RESULT: ", json);
+      // 如果返回了postId，则跳转到对应的帖子页面
       if (json?.postId) {
         router.push(`/post/${json.postId}`);
       }
     } catch (error) {
+      // 如果发生错误，打印错误信息，并将生成状态设置为false
       console.error("Error generating post:", error);
       setGenerating(false);
     }
