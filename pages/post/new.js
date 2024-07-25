@@ -21,7 +21,7 @@ export default function NewPost(props) {
     setGenerating(true);
   
     // 定义一个异步函数，用于带有重试机制的fetch请求
-    const fetchWithRetry = async (url, options, retries = 100, backoff = 1000) => {
+    const fetchWithRetry = async (url, options, retries = 100, backoff = 6000) => {
       try {
         // 发起fetch请求
         const response = await fetch(url, options);
