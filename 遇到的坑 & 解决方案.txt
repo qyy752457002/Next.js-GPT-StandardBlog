@@ -1,0 +1,50 @@
+1.  环境变量只在服务端有效！！！
+
+    默认情况下，Next.js 环境变量只在服务端有效。
+    如果你需要在客户端使用环境变量，需要在环境变量名前加上 NEXT_PUBLIC_ 前缀，例如
+
+    NEXT_PUBLIC_AUTH0_BASE_URL=http://localhost:3000
+
+--------------------------------------------------------------------------------'
+
+2.  删除已经提交的 .env.local 文件
+    如果 .env.local 文件已经被提交到版本控制中，需要将其从Git历史中移除：
+
+    a. 从当前版本中删除
+
+    git rm --cached .env.local
+
+    b. 提交更改
+
+    git commit -m "Remove .env.local from version control"
+
+    3. 检查 .gitignore 是否生效
+    确保 .env.local 文件被正确忽略，你可以使用以下命令来检查：
+
+    git check-ignore -v .env.local
+
+--------------------------------------------------------------------------------
+
+3.  更改登录页面的名称显示
+
+    https://manage.auth0.com/dashboard/us/dev-a4yqd3w2fvdmyg0k/tenant/general
+
+-------------------------------------------------------------------------------
+
+4.  解决 Dev Keys 问题
+
+    One or more of your connections are currently using Auth0 development keys and should not be used in production.
+
+    Social Connections中写入 Client ID 与 Client secret (Authentication下面的Social)
+
+    https://manage.auth0.com/dashboard/us/dev-a4yqd3w2fvdmyg0k/connections/social/con_0Vd5aG9Ir6zMBli0/settings
+
+
+----------------------------------------------------------------------------------
+
+5.  Configure Google production keys for Auth0 (解决登录页面 Google Dev Keys的问题)
+
+    https://github.com/natbat/pillarpointstewards/issues/52
+
+
+    Google Cloud Platform Console: https://console.cloud.google.com/projectcreate

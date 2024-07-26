@@ -1,0 +1,92 @@
+https://platform.openai.com/docs/guides/chat-completions
+
+文本例子: https://platform.openai.com/docs/guides/prompt-engineering/tactic-provide-examples
+
+在 OpenAI API 的对话模型中，`system`、`user` 和 `assistant` 三种角色有着不同的作用，旨在模拟对话的不同参与者，并帮助模型生成适当的响应。
+以下是每种角色的简要说明：
+
+1. **System（系统）**：
+   - 角色：`system`
+   - 作用：设定对话的背景和指导方针，帮助模型理解其在对话中的角色和应遵循的规则。
+   - 示例：你可以使用 `system` 消息来告诉模型它是什么（例如，一个博客文章生成器）以及它应该如何响应用户的请求。
+   - 示例代码：
+     ```javascript
+     {
+       role: "system",
+       content: "You are a blog post generator.",
+     }
+     ```
+
+2. **User（用户）**：
+   - 角色：`user`
+   - 作用：表示人类用户的输入，向模型提出问题或请求。
+   - 示例：用户可以向模型提供主题和关键词，要求生成一篇博客文章。
+   - 示例代码：
+     ```javascript
+     {
+       role: "user",
+       content: `Write a long and detailed SEO-friendly blog post about ${topic}, that targets the following comma-separated keywords: ${keywords}. 
+     The response should be formatted in SEO-friendly HTML, 
+     limited to the following HTML tags: p, h1, h2, h3, h4, h5, h6, strong, i, ul, li, ol.`,
+     }
+     ```
+
+3. **Assistant（助手）**：
+   - 角色：`assistant`
+   - 作用：表示 AI 模型的输出，回应用户的请求或回答用户的问题。
+   - 示例：模型根据用户的输入生成响应，提供所要求的内容。
+   - 示例代码：
+     ```javascript
+     {
+       role: "assistant",
+       content: postContent,
+     }
+     ```
+
+### 具体示例讲解
+
+在你的代码中，这三种角色的使用如下：
+
+1. **初始化对话**：
+   - 使用 `system` 消息来告诉模型它是一个博客文章生成器。
+   - 这有助于设置模型的背景和角色，使其能够生成与上下文相关的响应。
+   ```javascript
+   {
+     role: "system",
+     content: "You are a blog post generator.",
+   }
+   ```
+
+2. **用户请求**：
+   - 使用 `user` 消息向模型提供博客文章的主题和关键词，并要求模型生成内容。
+   - 这模拟了用户与模型的交互，其中用户提出具体需求。
+   ```javascript
+   {
+     role: "user",
+     content: `Write a long and detailed SEO-friendly blog post about ${topic}, that targets the following comma-separated keywords: ${keywords}. 
+   The response should be formatted in SEO-friendly HTML, 
+   limited to the following HTML tags: p, h1, h2, h3, h4, h5, h6, strong, i, ul, li, ol.`,
+   }
+   ```
+
+3. **模型响应**：
+   - 使用 `assistant` 消息表示模型生成的博客内容。
+   - 这表示模型根据用户输入生成的响应内容。
+   ```javascript
+   {
+     role: "assistant",
+     content: postContent,
+   }
+   ```
+
+4. **进一步请求**：
+   - 用户再次输入，要求模型生成适当的标题标签文本。
+   - 这模拟了用户的后续请求，要求模型为之前生成的内容提供附加信息。
+   ```javascript
+   {
+     role: "user",
+     content: "Generate appropriate title tag text for the above blog post",
+   }
+   ```
+
+通过这种方式，`system` 消息帮助设定了对话的基调和规则，`user` 消息表示用户的具体请求，而 `assistant` 消息则表示模型的响应。这种结构有助于保持对话的一致性和上下文相关性，从而生成高质量的内容。

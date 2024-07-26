@@ -12,7 +12,6 @@ export default function NewPost(props) {
   const [keywords, setKeywords] = useState(""); // 定义状态变量keywords和更新函数setKeywords
   const [generating, setGenerating] = useState(false); // 定义状态变量generating和更新函数setGenerating
 
-
   // 定义一个异步函数，用于处理表单提交
   const handleSubmit = async (e) => {
     // 阻止表单默认提交行为
