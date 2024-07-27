@@ -1,86 +1,87 @@
-import { withPageAuthRequired } from "@auth0/nextjs-auth0"; // 导入Auth0的身份验证组件
-import { faBrain } from "@fortawesome/free-solid-svg-icons"; // 导入大脑图标
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"; // 导入FontAwesome图标组件
-import { useRouter } from "next/router"; // 导入Next.js的路由工具
-import { useState } from "react"; // 导入React的useState Hook
-import { AppLayout } from "../../components/AppLayout"; // 导入应用程序布局组件
-import { getAppProps } from "../../utils/getAppProps"; // 导入获取应用程序属性的工具函数
+import { withPageAuthRequired } from "@auth0/nextjs-auth0"; // 引入 Auth0 的认证保护函数
+import { faBrain } from "@fortawesome/free-solid-svg-icons"; // 引入 FontAwesome 图标库中的大脑图标
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"; // 引入 FontAwesome 图标组件
+import { useRouter } from "next/router"; // 引入 Next.js 的路由钩子
+import { useState } from "react"; // 引入 React 的 useState 钩子
+import { AppLayout } from "../../components/AppLayout"; // 引入应用布局组件
+import { getAppProps } from "../../utils/getAppProps"; // 引入获取应用属性的实用函数
 
 export default function NewPost(props) {
-  const router = useRouter(); // 初始化路由工具
-  const [topic, setTopic] = useState(""); // 定义状态变量topic和更新函数setTopic
-  const [keywords, setKeywords] = useState(""); // 定义状态变量keywords和更新函数setKeywords
-  const [generating, setGenerating] = useState(false); // 定义状态变量generating和更新函数setGenerating
+  const router = useRouter(); // 初始化路由器
+  const [topic, setTopic] = useState(""); // 设置话题的状态
+  const [keywords, setKeywords] = useState(""); // 设置关键词的状态
+  const [generating, setGenerating] = useState(false); // 设置生成状态
 
+  // 表单提交处理函数
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setGenerating(true);
+    e.preventDefault(); // 防止默认表单提交行为
+    setGenerating(true); // 设置生成状态为 true
     try {
       const response = await fetch(`/api/generatePost`, {
-        method: 'POST',
+        method: "POST", // 使用 POST 方法
         headers: {
-          'content-type': 'application/json',
+          "content-type": "application/json", // 设置请求头为 JSON
         },
-        body: JSON.stringify({ topic, keywords }),
+        body: JSON.stringify({ topic, keywords }), // 将话题和关键词作为请求体
       });
-      const json = await response.json();
-      console.log('RESULT: ', json);
+      const json = await response.json(); // 解析响应为 JSON
+      console.log("RESULT: ", json); // 输出结果
       if (json?.postId) {
-        router.push(`/post/${json.postId}`);
+        router.push(`/post/${json.postId}`); // 如果有 postId，跳转到相应帖子页面
       }
     } catch (e) {
-      setGenerating(false);
+      setGenerating(false); // 捕获异常，设置生成状态为 false
     }
   };
 
   return (
     <div className="h-full overflow-hidden">
-      {!!generating && ( // 生成中显示的内容
+      {!!generating && ( // 如果正在生成
         <div className="text-green-500 flex h-full animate-pulse w-full flex-col justify-center items-center">
           <FontAwesomeIcon icon={faBrain} className="text-8xl" />{" "}
           {/* 显示大脑图标 */}
-          <h6>Generating...</h6> {/* 显示生成中 */}
+          <h6>Generating...</h6> {/* 显示生成中提示 */}
         </div>
       )}
-      {!generating && ( // 未生成时显示的内容
+      {!generating && ( // 如果没有在生成
         <div className="w-full h-full flex flex-col overflow-auto">
           <form
-            onSubmit={handleSubmit}
+            onSubmit={handleSubmit} // 绑定表单提交处理函数
             className="m-auto w-full max-w-screen-sm bg-slate-100 p-4 rounded-md shadow-xl border border-slate-200 shadow-slate-200"
           >
             <div>
               <label>
-                <strong>Generate a blog post on the topic of:</strong>
-                {/* 生成博客文章的主题 */}
+                <strong>Generate a blog post on the topic of:</strong>{" "}
+                {/* 输入话题的标签 */}
               </label>
               <textarea
                 className="resize-none border border-slate-500 w-full block my-2 px-4 py-2 rounded-sm"
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
-                maxLength={80} // 限制文本输入长度
+                value={topic} // 绑定话题状态
+                onChange={(e) => setTopic(e.target.value)} // 更新话题状态
+                maxLength={80} // 最大输入长度
               />
             </div>
             <div>
               <label>
-                <strong>Targeting the following keywords:</strong>
-                {/* 目标关键词 */}
+                <strong>Targeting the following keywords:</strong>{" "}
+                {/* 输入关键词的标签 */}
               </label>
               <textarea
                 className="resize-none border border-slate-500 w-full block my-2 px-4 py-2 rounded-sm"
-                value={keywords}
-                onChange={(e) => setKeywords(e.target.value)}
-                maxLength={80} // 限制文本输入长度
+                value={keywords} // 绑定关键词状态
+                onChange={(e) => setKeywords(e.target.value)} // 更新关键词状态
+                maxLength={80} // 最大输入长度
               />
-              <small className="block mb-2">Separate keywords with comma</small>
-              {/* 用逗号分隔关键词 */}
+              <small className="block mb-2">
+                Separate keywords with a comma {/* 关键词用逗号分隔的小提示 */}
+              </small>
             </div>
             <button
               type="submit"
               className="btn"
-              disabled={!topic.trim() || !keywords.trim()} // 主题和关键词不能为空
+              disabled={!topic.trim() || !keywords.trim() || props.availableTokens < 10} // 当话题或关键词为空，或者availableTokens的数量小于10，禁用按钮
             >
-              Generate
-              {/* 生成按钮 */}
+              Generate {/* 提交按钮 */}
             </button>
           </form>
         </div>
@@ -89,27 +90,28 @@ export default function NewPost(props) {
   );
 }
 
-// page 表示页面组件的React元素，对应 NewPost() 组件
-// pageProps 表示传递给页面组件的属性，对应 getServerSideProps返回的props
+// 设置页面布局
 NewPost.getLayout = function getLayout(page, pageProps) {
-  return <AppLayout {...pageProps}>{page}</AppLayout>; // 使用应用程序布局组件
+  return <AppLayout {...pageProps}>{page}</AppLayout>;
 };
 
+// 服务器端数据获取，确保用户已登录并且有可用的令牌
 export const getServerSideProps = withPageAuthRequired({
   async getServerSideProps(ctx) {
-    const props = await getAppProps(ctx); // 获取应用程序属性
+    const props = await getAppProps(ctx); // 获取应用属性
 
     if (!props.availableTokens) {
+      // 如果没有可用的令牌
       return {
         redirect: {
-          destination: "/token-topup",
-          permanent: false, // 如果没有可用的Token，则重定向到Token充值页面
+          destination: "/token-topup", // 重定向到令牌充值页面
+          permanent: false,
         },
       };
     }
 
     return {
-      props, // 返回获取到的属性
+      props,
     };
   },
 });

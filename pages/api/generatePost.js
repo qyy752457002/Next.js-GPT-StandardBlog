@@ -10,7 +10,7 @@ export default withApiAuthRequired(async function handler(req, res) {
     auth0Id: user.sub, // 查找与当前用户关联的用户档案
   });
 
-  if (!userProfile?.availableTokens) { // 如果用户没有可用的token
+  if ( userProfile?.availableTokens - 10 < 0) { // 如果用户没有可用的token
     res.status(403); // 返回403状态码
     return; // 终止函数
   }
