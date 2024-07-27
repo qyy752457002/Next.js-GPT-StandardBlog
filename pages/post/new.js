@@ -12,73 +12,27 @@ export default function NewPost(props) {
   const [keywords, setKeywords] = useState(""); // 定义状态变量keywords和更新函数setKeywords
   const [generating, setGenerating] = useState(false); // 定义状态变量generating和更新函数setGenerating
 
-  // 定义一个异步函数，用于处理表单提交
   const handleSubmit = async (e) => {
-    // 阻止表单默认提交行为
     e.preventDefault();
-    // 设置生成状态为true
     setGenerating(true);
-
-    // 定义一个异步函数，用于带有重试机制的fetch请求
-    const fetchWithRetry = async (
-      url,
-      options,
-      retries = 10000000,
-      backoff = 60000000
-    ) => {
-      try {
-        // 发起fetch请求
-        const response = await fetch(url, options);
-        // 如果请求失败
-        if (!response.ok) {
-          // 如果状态码为429 或者 404 或者 405，进行重试
-          if ( (response.status === 429 || response.status === 404 || response.status === 405 ) && retries > 0) {
-            // 等待一段时间后再次发起请求
-            await new Promise((resolve) => setTimeout(resolve, backoff));
-            return fetchWithRetry(url, options, retries - 1, backoff * 2);
-          } else {
-            // 否则抛出错误
-            throw new Error(`Request failed with status ${response.status}`);
-          }
-        }
-        // 返回响应
-        return response;
-      } catch (error) {
-        // 如果还有重试次数
-        if (retries > 0) {
-          // 等待一段时间后再次发起请求
-          await new Promise((resolve) => setTimeout(resolve, backoff));
-          return fetchWithRetry(url, options, retries - 1, backoff * 2);
-        } else {
-          // 否则抛出错误
-          throw error;
-        }
-      }
-    };
-
     try {
-      // 发起带有重试机制的fetch请求
-      const response = await fetchWithRetry(`/api/generatePost`, {
-        method: "POST",
+      const response = await fetch(`/api/generatePost`, {
+        method: 'POST',
         headers: {
-          "content-type": "application/json",
+          'content-type': 'application/json',
         },
         body: JSON.stringify({ topic, keywords }),
       });
-
-      // 解析响应
       const json = await response.json();
-      console.log("RESULT: ", json);
-      // 如果返回了postId，则跳转到对应的帖子页面
+      console.log('RESULT: ', json);
       if (json?.postId) {
         router.push(`/post/${json.postId}`);
       }
-    } catch (error) {
-      // 如果发生错误，打印错误信息，并将生成状态设置为false
-      console.error("Error generating post:", error);
+    } catch (e) {
       setGenerating(false);
     }
   };
+
 
   return (
     <div className="h-full overflow-hidden">
