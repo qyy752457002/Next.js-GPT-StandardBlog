@@ -17,7 +17,9 @@ export default withApiAuthRequired(async function handler(req, res) {
 
   const config = new Configuration({
     apiKey: process.env.OPENAI_API_KEY, // 使用环境变量中的OpenAI API密钥进行配置
+    timeout: 60000, // 设置超时时间为60秒（60000毫秒)
   });
+
   const openai = new OpenAIApi(config); // 创建OpenAI API实例
 
   const { topic, keywords } = req.body; // 从请求体中提取主题和关键词
@@ -34,7 +36,7 @@ export default withApiAuthRequired(async function handler(req, res) {
 
   // 调用OpenAI API生成博客内容
   const postContentResult = await openai.createChatCompletion({
-    model: "gpt-4o-mini", // 使用 GPT-4-turbo 模型
+    model: "gpt-4o-mini", // 使用 GPT-4-mini 模型
     messages: [
       {
         role: "system",
@@ -54,7 +56,7 @@ export default withApiAuthRequired(async function handler(req, res) {
 
   // 调用OpenAI API生成博客标题
   const titleResult = await openai.createChatCompletion({
-    model: "gpt-4o-mini", // 使用 GPT-4-turbo 模型
+    model: "gpt-4o-mini", // 使用 GPT-4-mini 模型
     messages: [
       {
         role: "system",
@@ -81,7 +83,7 @@ export default withApiAuthRequired(async function handler(req, res) {
 
   // 调用OpenAI API生成Meta描述
   const metaDescriptionResult = await openai.createChatCompletion({
-    model: "gpt-4o-mini", // 使用 GPT-4-turbo 模型
+    model: "gpt-4o-mini", // 使用 GPT-4-mini 模型
     messages: [
       {
         role: "system",
