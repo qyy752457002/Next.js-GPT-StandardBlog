@@ -58,7 +58,7 @@ export default function NewPost(props) {
 
     try {
       // 发起带有重试机制的fetch请求
-      const response = await fetchWithRetry(`/api/generatePost`, {
+      const response = await fetchWithRetry(`${process.env.AUTH0_BASE_URL}/api/generatePost`, {
         method: "POST",
         headers: {
           "content-type": "application/json",
