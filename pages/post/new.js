@@ -33,7 +33,6 @@ export default function NewPost(props) {
     }
   };
 
-
   return (
     <div className="h-full overflow-hidden">
       {!!generating && ( // 生成中显示的内容
