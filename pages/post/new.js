@@ -23,15 +23,15 @@ export default function NewPost(props) {
     const fetchWithRetry = async (
       url,
       options,
-      retries = 1000,
-      backoff = 60000
+      retries = 10000000,
+      backoff = 60000000
     ) => {
       try {
         // 发起fetch请求
         const response = await fetch(url, options);
         // 如果请求失败
         if (!response.ok) {
-          // 如果状态码为429 或者 404，进行重试
+          // 如果状态码为429 或者 404 或者 405，进行重试
           if ( (response.status === 429 || response.status === 404 || response.status === 405 ) && retries > 0) {
             // 等待一段时间后再次发起请求
             await new Promise((resolve) => setTimeout(resolve, backoff));
