@@ -24,7 +24,7 @@ export default withApiAuthRequired(async function handler(req, res) {
   // 配置OpenAI API
   const config = new Configuration({
     apiKey: process.env.OPENAI_API_KEY,
-    timeout: 100000, // 设置超时时间为100秒
+    timeout: 100000000, // 设置超时时间为100000秒
   });
   const openai = new OpenAIApi(config);
 
