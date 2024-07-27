@@ -24,7 +24,7 @@ export default withApiAuthRequired(async function handler(req, res) {
   // 配置OpenAI API
   const config = new Configuration({
     apiKey: process.env.OPENAI_API_KEY,
-    timeout: 20000, // 设置超时时间为20秒
+    timeout: 100000, // 设置超时时间为100秒
   });
   const openai = new OpenAIApi(config);
 
@@ -118,8 +118,8 @@ export default withApiAuthRequired(async function handler(req, res) {
     });
   };
 
-  // 重试机制，尝试3次
-  const retry = async (fn, retries = 3) => {
+  // 重试机制，尝试99次
+  const retry = async (fn, retries = 99) => {
     try {
       return await fn();
     } catch (error) {
@@ -177,6 +177,6 @@ export default withApiAuthRequired(async function handler(req, res) {
     postId: post.insertedId,
   });
 
-  console.error("Error generating blog post:", error);
-  res.status(500).json({ error: "Internal Server Error" });
+  // console.error("Error generating blog post:", error);
+  // res.status(500).json({ error: "Internal Server Error" });
 });
