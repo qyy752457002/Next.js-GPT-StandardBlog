@@ -1,1 +1,5 @@
 https://platform.openai.com/docs/models
+
+Text Generation 模型 使用指南: 
+
+https://platform.openai.com/docs/guides/text-generation
