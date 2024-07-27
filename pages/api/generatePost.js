@@ -132,7 +132,7 @@ export default withApiAuthRequired(async function handler(req, res) {
     },
     {
       $inc: {
-        availableTokens: -1,
+        availableTokens: -10,
       },
     }
   );
