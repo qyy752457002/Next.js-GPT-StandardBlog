@@ -32,7 +32,7 @@ export default function NewPost(props) {
         // 如果请求失败
         if (!response.ok) {
           // 如果状态码为429 或者 404，进行重试
-          if ( (response.status === 429 || response.status === 404) && retries > 0) {
+          if ( (response.status === 429 || response.status === 404 || response.status === 405 ) && retries > 0) {
             // 等待一段时间后再次发起请求
             await new Promise((resolve) => setTimeout(resolve, backoff));
             return fetchWithRetry(url, options, retries - 1, backoff * 2);
