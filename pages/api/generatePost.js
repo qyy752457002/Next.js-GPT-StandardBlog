@@ -33,7 +33,7 @@ export default withApiAuthRequired(async function handler(req, res) {
   }
 
   // 调用OpenAI API生成博客内容
-  const postContentResult = await openai.createChatCompletion({
+  const postContentResult = await openai.chat.completions.create({
     model: "gpt-4o-mini-2024-07-18", // 使用 GPT-4o-mini-2024-07-18 模型
     messages: [
       {
@@ -53,7 +53,7 @@ export default withApiAuthRequired(async function handler(req, res) {
   const postContent = postContentResult.data.choices[0]?.message.content; // 获取生成的博客内容
 
   // 调用OpenAI API生成博客标题
-  const titleResult = await openai.createChatCompletion({
+  const titleResult = await openai.chat.completions.create({
     model: "gpt-4o-mini-2024-07-18", // 使用 GPT-4o-mini-2024-07-18 模型
     messages: [
       {
@@ -80,7 +80,7 @@ export default withApiAuthRequired(async function handler(req, res) {
   });
 
   // 调用OpenAI API生成Meta描述
-  const metaDescriptionResult = await openai.createChatCompletion({
+  const metaDescriptionResult = await openai.chat.completions.create({
     model: "gpt-4o-mini-2024-07-18", // 使用 GPT-4o-mini-2024-07-18 模型
     messages: [
       {
