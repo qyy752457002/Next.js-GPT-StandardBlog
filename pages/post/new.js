@@ -18,9 +18,14 @@ export default function NewPost(props) {
     e.preventDefault();
     // 设置生成状态为true
     setGenerating(true);
-  
+
     // 定义一个异步函数，用于带有重试机制的fetch请求
-    const fetchWithRetry = async (url, options, retries = 100, backoff = 6000) => {
+    const fetchWithRetry = async (
+      url,
+      options,
+      retries = 100,
+      backoff = 6000
+    ) => {
       try {
         // 发起fetch请求
         const response = await fetch(url, options);
@@ -29,7 +34,7 @@ export default function NewPost(props) {
           // 如果状态码为429，表示请求过多，进行重试
           if (response.status === 429 && retries > 0) {
             // 等待一段时间后再次发起请求
-            await new Promise(resolve => setTimeout(resolve, backoff));
+            await new Promise((resolve) => setTimeout(resolve, backoff));
             return fetchWithRetry(url, options, retries - 1, backoff * 2);
           } else {
             // 否则抛出错误
@@ -42,7 +47,7 @@ export default function NewPost(props) {
         // 如果还有重试次数
         if (retries > 0) {
           // 等待一段时间后再次发起请求
-          await new Promise(resolve => setTimeout(resolve, backoff));
+          await new Promise((resolve) => setTimeout(resolve, backoff));
           return fetchWithRetry(url, options, retries - 1, backoff * 2);
         } else {
           // 否则抛出错误
@@ -50,7 +55,7 @@ export default function NewPost(props) {
         }
       }
     };
-  
+
     try {
       // 发起带有重试机制的fetch请求
       const response = await fetchWithRetry(`/api/generatePost`, {
@@ -60,7 +65,7 @@ export default function NewPost(props) {
         },
         body: JSON.stringify({ topic, keywords }),
       });
-  
+
       // 解析响应
       const json = await response.json();
       console.log("RESULT: ", json);
@@ -74,12 +79,13 @@ export default function NewPost(props) {
       setGenerating(false);
     }
   };
-  
+
   return (
     <div className="h-full overflow-hidden">
       {!!generating && ( // 生成中显示的内容
         <div className="text-green-500 flex h-full animate-pulse w-full flex-col justify-center items-center">
-          <FontAwesomeIcon icon={faBrain} className="text-8xl" /> {/* 显示大脑图标 */}
+          <FontAwesomeIcon icon={faBrain} className="text-8xl" />{" "}
+          {/* 显示大脑图标 */}
           <h6>Generating...</h6> {/* 显示生成中 */}
         </div>
       )}
