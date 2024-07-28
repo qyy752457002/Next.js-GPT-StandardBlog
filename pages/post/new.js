@@ -79,7 +79,9 @@ export default function NewPost(props) {
             <button
               type="submit"
               className="btn"
-              disabled={!topic.trim() || !keywords.trim() || props.availableTokens < 10} // 当话题或关键词为空，或者availableTokens的数量小于10，禁用按钮
+              disabled={
+                !topic.trim() || !keywords.trim() || props.availableTokens < 10
+              } // 当话题或关键词为空，或者availableTokens的数量小于10，禁用按钮
             >
               Generate {/* 提交按钮 */}
             </button>
