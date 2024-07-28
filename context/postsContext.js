@@ -1,4 +1,4 @@
-import { useRouter } from 'next/router';
+import { useRouter } from "next/router";
 import React, { useCallback, useReducer, useState } from "react";
 
 // 创建一个上下文，用于在整个应用中共享posts相关的数据和操作
@@ -14,7 +14,7 @@ function postsReducer(state, action) {
     case "addPosts": {
       // 处理添加新posts的动作
       const newPosts = [...state];
-        /*
+      /*
             action里面的posts来自
             
             dispatch({
@@ -92,7 +92,7 @@ export const PostsProvider = ({ children }) => {
 
       const json = await result.json();
       const postsResult = json.posts || [];
-      
+
       if (postsResult.length < 5) {
         setNoMorePosts(true); // 如果获取的posts少于5个，设置没有更多posts
       }
