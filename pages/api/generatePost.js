@@ -65,8 +65,7 @@ export default withApiAuthRequired(async function handler(req, res) {
           {
             role: "user",
             content: `Write a long and detailed SEO-friendly blog post about ${topic}, that targets the following comma-separated keywords: ${keywords}. 
-            The response should be formatted in SEO-friendly HTML, 
-            limited to the following HTML tags: p, h1, h2, h3, h4, h5, h6, strong, i, ul, li, ol`, // 用户请求生成博客内容
+            The response should be formatted in SEO-friendly HTML without HTML tags. `, // 用户请求生成博客内容
           },
         ],
         temperature: 0, // 设置温度参数为0
@@ -87,8 +86,7 @@ export default withApiAuthRequired(async function handler(req, res) {
           {
             role: "user",
             content: `Write a long and detailed SEO-friendly blog post about ${topic}, that targets the following comma-separated keywords: ${keywords}. 
-            The response should be formatted in SEO-friendly HTML, 
-            limited to the following HTML tags: p, h1, h2, h3, h4, h5, h6, strong, i, ul, li, ol.`, // 用户请求生成博客内容
+            The response should be formatted in SEO-friendly HTML without HTML tags. `, // 用户请求生成博客内容
           },
           {
             role: "assistant",
@@ -97,7 +95,7 @@ export default withApiAuthRequired(async function handler(req, res) {
           {
             role: "user",
             content:
-              "Generate SEO-friendly meta description content for the above blog post without HTML tags", // 用户请求生成标题
+              "Generate SEO-friendly blog title for the above blog post without HTML tags", // 用户请求生成标题
           },
         ],
         temperature: 0, // 设置温度参数为0
@@ -118,8 +116,7 @@ export default withApiAuthRequired(async function handler(req, res) {
           {
             role: "user",
             content: `Write a long and detailed SEO-friendly blog post about ${topic}, that targets the following comma-separated keywords: ${keywords}. 
-            The response should be formatted in SEO-friendly HTML, 
-            limited to the following HTML tags: p, h1, h2, h3, h4, h5, h6, strong, i, ul, li, ol.`, // 用户请求生成博客内容
+            The response should be formatted in SEO-friendly HTML without HTML tags. `, // 用户请求生成博客内容
           },
           {
             role: "assistant",
