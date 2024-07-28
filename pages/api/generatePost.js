@@ -3,12 +3,19 @@ import { Configuration, OpenAIApi } from "openai"; // 从OpenAI库中导入配�
 import clientPromise from "../../lib/mongodb"; // 导入MongoDB客户端
 
 // 定义重试机制的辅助函数
-async function retryRequest(requestFunction, retries = 10) {
+async function retryRequest(requestFunction, retries = 10, delay = 1000) {
   for (let i = 0; i < retries; i++) {
     try {
       return await requestFunction();
     } catch (error) {
       if (i === retries - 1) throw error;
+      if (error.response && error.response.status === 429) {
+        console.log(`Rate limit hit, retrying in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        delay *= 2; // 指数退避
+      } else {
+        throw error;
+      }
     }
   }
 }
