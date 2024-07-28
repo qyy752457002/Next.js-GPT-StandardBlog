@@ -6,15 +6,15 @@ import clientPromise from "../../lib/mongodb"; // 导入MongoDB客户端
 async function retryRequest(requestFunction, retries = 10, delay = 1000) {
   for (let i = 0; i < retries; i++) {
     try {
-      return await requestFunction();
+      return await requestFunction(); // 尝试执行请求
     } catch (error) {
-      if (i === retries - 1) throw error;
+      if (i === retries - 1) throw error; // 如果已经是最后一次重试，则抛出错误
       if (error.response && error.response.status === 429) {
         console.log(`Rate limit hit, retrying in ${delay}ms...`);
-        await new Promise((resolve) => setTimeout(resolve, delay));
+        await new Promise(resolve => setTimeout(resolve, delay)); // 延迟后重试
         delay *= 2; // 指数退避
       } else {
-        throw error;
+        throw error; // 如果不是限速错误，抛出错误
       }
     }
   }
@@ -28,8 +28,7 @@ export default withApiAuthRequired(async function handler(req, res) {
     auth0Id: user.sub, // 查找与当前用户关联的用户档案
   });
 
-  if (userProfile?.availableTokens - 10 < 0) {
-    // 如果用户没有可用的token
+  if (userProfile?.availableTokens - 10 < 0) { // 如果用户没有足够的可用token
     res.status(403).json({ error: "Insufficient tokens" }); // 返回403状态码
     return; // 终止函数
   }
@@ -43,23 +42,41 @@ export default withApiAuthRequired(async function handler(req, res) {
 
   const { topic, keywords } = req.body; // 从请求体中提取主题和关键词
 
-  if (!topic || !keywords) {
-    // 如果主题或关键词不存在
+  if (!topic || !keywords) { // 如果主题或关键词不存在
     res.status(422).json({ error: "Topic and keywords are required" }); // 返回422状态码
     return; // 终止函数
   }
 
-  if (topic.length > 80 || keywords.length > 80) {
-    // 如果主题或关键词长度超过80字符
-    res
-      .status(422)
-      .json({ error: "Topic and keywords must be under 80 characters" }); // 返回422状态码
+  if (topic.length > 80 || keywords.length > 80) { // 如果主题或关键词长度超过80字符
+    res.status(422).json({ error: "Topic and keywords must be under 80 characters" }); // 返回422状态码
     return; // 终止函数
   }
 
   try {
-    // 并行调用OpenAI API生成博客内容、标题和Meta描述
-    const postContentPromise = retryRequest(() =>
+    // 调用OpenAI API生成博客内容
+    const postContentResult = await retryRequest(() =>
+      openai.createChatCompletion({
+        model: "gpt-4o-mini", // 使用 GPT-4-mini 模型
+        messages: [
+          {
+            role: "system",
+            content: "You are a blog post generator.", // 指定系统角色和任务
+          },
+          {
+            role: "user",
+            content: `Write a long and detailed SEO-friendly blog post about ${topic}, that targets the following comma-separated keywords: ${keywords}. 
+            The response should be formatted in SEO-friendly HTML, 
+            limited to the following HTML tags: p, h1, h2, h3, h4, h5, h6, strong, i, ul, li, ol`, // 用户请求生成博客内容
+          },
+        ],
+        temperature: 0, // 设置温度参数为0
+      })
+    );
+
+    const postContent = postContentResult.data.choices[0]?.message.content; // 获取生成的博客内容
+
+    // 调用OpenAI API生成博客标题
+    const titleResult = await retryRequest(() =>
       openai.createChatCompletion({
         model: "gpt-4o-mini", // 使用 GPT-4-mini 模型
         messages: [
@@ -73,80 +90,53 @@ export default withApiAuthRequired(async function handler(req, res) {
             The response should be formatted in SEO-friendly HTML, 
             limited to the following HTML tags: p, h1, h2, h3, h4, h5, h6, strong, i, ul, li, ol.`, // 用户请求生成博客内容
           },
+          {
+            role: "assistant",
+            content: postContent, // 将生成的博客内容传递给助手
+          },
+          {
+            role: "user",
+            content:
+              "Generate SEO-friendly meta description content for the above blog post without HTML tags", // 用户请求生成标题
+          },
         ],
         temperature: 0, // 设置温度参数为0
       })
     );
 
-    const titlePromise = postContentPromise.then(postContentResult => {
-      const postContent = postContentResult.data.choices[0]?.message.content; // 获取生成的博客内容
-      return retryRequest(() =>
-        openai.createChatCompletion({
-          model: "gpt-4o-mini", // 使用 GPT-4-mini 模型
-          messages: [
-            {
-              role: "system",
-              content: "You are a blog post generator.", // 指定系统角色和任务
-            },
-            {
-              role: "user",
-              content: `Write a long and detailed SEO-friendly blog post about ${topic}, that targets the following comma-separated keywords: ${keywords}. 
-              The response should be formatted in SEO-friendly HTML, 
-              limited to the following HTML tags: p, h1, h2, h3, h4, h5, h6, strong, i, ul, li, ol.`, // 用户请求生成博客内容
-            },
-            {
-              role: "assistant",
-              content: postContent, // 将生成的博客内容传递给助手
-            },
-            {
-              role: "user",
-              content: "Generate appropriate title tag text for the above blog post without HTML tags", // 用户请求生成标题
-            },
-          ],
-          temperature: 0, // 设置温度参数为0
-        })
-      );
-    });
-
-    const metaDescriptionPromise = postContentPromise.then(postContentResult => {
-      const postContent = postContentResult.data.choices[0]?.message.content; // 获取生成的博客内容
-      return retryRequest(() =>
-        openai.createChatCompletion({
-          model: "gpt-4o-mini", // 使用 GPT-4-mini 模型
-          messages: [
-            {
-              role: "system",
-              content: "You are a blog post generator.", // 指定系统角色和任务
-            },
-            {
-              role: "user",
-              content: `Write a long and detailed SEO-friendly blog post about ${topic}, that targets the following comma-separated keywords: ${keywords}. 
-              The response should be formatted in SEO-friendly HTML, 
-              limited to the following HTML tags: p, h1, h2, h3, h4, h5, h6, strong, i, ul, li, ol.`, // 用户请求生成博客内容
-            },
-            {
-              role: "assistant",
-              content: postContent, // 将生成的博客内容传递给助手
-            },
-            {
-              role: "user",
-              content: "Generate SEO-friendly meta description content for the above blog post without HTML tags", // 用户请求生成Meta描述
-            },
-          ],
-          temperature: 0, // 设置温度参数为0
-        })
-      );
-    });
-
-    const [postContentResult, titleResult, metaDescriptionResult] = await Promise.all([
-      postContentPromise,
-      titlePromise,
-      metaDescriptionPromise,
-    ]);
-
-    const postContent = postContentResult.data.choices[0]?.message.content; // 获取生成的博客内容
     const title = titleResult.data.choices[0]?.message.content; // 获取生成的标题
-    const metaDescription = metaDescriptionResult.data.choices[0]?.message.content; // 获取生成的Meta描述
+
+    // 调用OpenAI API生成Meta描述
+    const metaDescriptionResult = await retryRequest(() =>
+      openai.createChatCompletion({
+        model: "gpt-4o-mini", // 使用 GPT-4-mini 模型
+        messages: [
+          {
+            role: "system",
+            content: "You are a blog post generator.", // 指定系统角色和任务
+          },
+          {
+            role: "user",
+            content: `Write a long and detailed SEO-friendly blog post about ${topic}, that targets the following comma-separated keywords: ${keywords}. 
+            The response should be formatted in SEO-friendly HTML, 
+            limited to the following HTML tags: p, h1, h2, h3, h4, h5, h6, strong, i, ul, li, ol.`, // 用户请求生成博客内容
+          },
+          {
+            role: "assistant",
+            content: postContent, // 将生成的博客内容传递给助手
+          },
+          {
+            role: "user",
+            content:
+              "Generate SEO-friendly meta description content for the above blog post without HTML tags", // 用户请求生成Meta描述
+          },
+        ],
+        temperature: 0, // 设置温度参数为0
+      })
+    );
+
+    const metaDescription =
+      metaDescriptionResult.data.choices[0]?.message.content; // 获取生成的Meta描述
 
     // 日志输出生成的内容
     console.log("POST CONTENT: ", postContent); // 打印生成的博客内容
@@ -185,3 +175,4 @@ export default withApiAuthRequired(async function handler(req, res) {
     res.status(500).json({ error: "Internal Server Error" }); // 返回500状态码
   }
 });
+
