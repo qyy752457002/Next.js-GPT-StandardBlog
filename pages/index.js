@@ -1,7 +1,7 @@
-import Image from 'next/image';
-import Link from 'next/link';
-import { Logo } from '../components/Logo';
-import HeroImage from '../public/hero.webp';
+import Image from "next/image";
+import Link from "next/link";
+import { Logo } from "../components/Logo";
+import HeroImage from "../public/hero.webp";
 
 export default function Home() {
   return (
