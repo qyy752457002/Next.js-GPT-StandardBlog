@@ -56,7 +56,7 @@ export default withApiAuthRequired(async function handler(req, res) {
     // 调用OpenAI API生成博客内容
     const postContentResult = await retryRequest(() =>
       openai.createChatCompletion({
-        model: "gpt-4o-mini", // 使用 GPT-4-mini 模型
+        model: "gpt-5.4-nano",
         messages: [
           {
             role: "system",
@@ -77,7 +77,7 @@ export default withApiAuthRequired(async function handler(req, res) {
     // 调用OpenAI API生成博客标题
     const titleResult = await retryRequest(() =>
       openai.createChatCompletion({
-        model: "gpt-4o-mini", // 使用 GPT-4-mini 模型
+        model: "gpt-5.4-nano",
         messages: [
           {
             role: "system",
@@ -107,7 +107,7 @@ export default withApiAuthRequired(async function handler(req, res) {
     // 调用OpenAI API生成Meta描述
     const metaDescriptionResult = await retryRequest(() =>
       openai.createChatCompletion({
-        model: "gpt-4o-mini", // 使用 GPT-4-mini 模型
+        model: "gpt-5.4-nano",
         messages: [
           {
             role: "system",

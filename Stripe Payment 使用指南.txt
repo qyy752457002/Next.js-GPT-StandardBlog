@@ -2,6 +2,6 @@ https://dashboard.stripe.com/test/dashboard
 
 （注意！！！，终端要进入webhooks的这个目录下面，否则如下指令都跑不了）
 
-.\stripe login
+stripe login
 
-.\stripe listen --forward-to localhost:3000/api/webhooks/stripe
+stripe listen --forward-to localhost:3000/api/webhooks/stripe

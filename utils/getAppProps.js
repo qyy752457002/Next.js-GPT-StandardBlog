@@ -36,12 +36,16 @@ export const getAppProps = async (ctx) => {
 
   // 返回应用程序需要的属性
   return {
-    availableTokens: user.availableTokens, // 返回用户的可用令牌数量
+    availableTokens: user.availableTokens ?? 0,
     posts: posts.map(({ created, _id, userId, ...rest }) => ({
-      _id: _id.toString(), // 将帖子ID转换为字符串格式
-      created: created.toString(), // 将创建日期转换为字符串格式
-      ...rest, // 其余帖子属性
+      _id: _id.toString(),
+      created: created ? created.toString() : '',
+      title: rest.title ?? '',
+      metaDescription: rest.metaDescription ?? '',
+      keywords: rest.keywords ?? '',
+      postContent: rest.postContent ?? '',
+      topic: rest.topic ?? '',
     })),
-    postId: ctx.params?.postId || null, // 返回上下文中的postId参数，如果不存在则为null
+    postId: ctx.params?.postId || null,
   };
 };

@@ -33,22 +33,16 @@ function postsReducer(state, action) {
     }
 
     case "deletePost": {
-      // 处理删除post的动作
       const newPosts = [];
       state.forEach((post) => {
-        /*
-            action里面的postId来自
-
-            dispatch({
-              type: 'deletePost',
-              postId,
-            });
-        */
         if (post._id !== action.postId) {
           newPosts.push(post);
         }
       });
       return newPosts;
+    }
+    case "deleteAllPosts": {
+      return [];
     }
     default:
       return state;
@@ -69,6 +63,13 @@ export const PostsProvider = ({ children }) => {
       type: "deletePost",
       postId,
     });
+  }, []);
+
+  const deleteAllPosts = useCallback(() => {
+    dispatch({
+      type: "deleteAllPosts",
+    });
+    setNoMorePosts(true);
   }, []);
 
   // 定义setPostsFromSSR回调，用于设置从服务器端渲染获取的posts
@@ -94,7 +95,7 @@ export const PostsProvider = ({ children }) => {
       const postsResult = json.posts || [];
 
       if (postsResult.length < 5) {
-        setNoMorePosts(true); // 如果获取的posts少于5个，设置没有更多posts
+        setNoMorePosts(true);
       }
       dispatch({
         type: "addPosts",
@@ -104,10 +105,16 @@ export const PostsProvider = ({ children }) => {
     []
   );
 
-  // 返回上下文提供器组件，提供posts相关的数据和操作
   return (
     <PostsContext.Provider
-      value={{ posts, setPostsFromSSR, getPosts, noMorePosts, deletePost }}
+      value={{
+        posts,
+        setPostsFromSSR,
+        getPosts,
+        noMorePosts,
+        deletePost,
+        deleteAllPosts,
+      }}
     >
       {children}
     </PostsContext.Provider>

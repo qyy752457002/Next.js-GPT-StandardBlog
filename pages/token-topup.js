@@ -1,76 +1,128 @@
-// 导入 withPageAuthRequired 函数，用于处理页面身份验证
 import { withPageAuthRequired } from "@auth0/nextjs-auth0";
-// 导入 AppLayout 组件，用于渲染应用程序布局
+import { faCheck, faCoins, faPenFancy } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useState } from "react";
 import { AppLayout } from "../components/AppLayout";
-// 导入 getAppProps 函数，用于获取应用程序属性
 import { getAppProps } from "../utils/getAppProps";
 
-// 导出 TokenTopup 函数，用于处理 TOKEN 充值
 export default function TokenTopup(props) {
-  // 定义处理点击事件的函数
+  const [loading, setLoading] = useState(false);
+
   const handleClick = async () => {
-    // 发起 POST 请求到 /api/addTokens
-    const result = await fetch(`/api/addTokens`, {
-      method: "POST",
-    });
-    
-    // 解析响应数据
-    const json = await result.json(); 
-    console.log('RESULT: ', json);
-    // 跳转到响应数据中的 session.url
-    window.location.href = json.session.url;
+    if (loading) return;
+    try {
+      setLoading(true);
+      const result = await fetch(`/api/addTokens`, {
+        method: "POST",
+      });
+      const json = await result.json();
+      if (json?.session?.url) {
+        window.location.href = json.session.url;
+      } else {
+        alert("Unable to start checkout. Please try again.");
+        setLoading(false);
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Unable to start checkout. Please try again.");
+      setLoading(false);
+    }
   };
 
-  // 返回应用程序布局
   return (
-    <div>
-      <h1>this is the token topup</h1>
-      <button className="btn" onClick={handleClick}>
-        Add tokens
-      </button>
+    <div className="h-full overflow-auto bg-gradient-to-br from-slate-50 via-white to-cyan-50">
+      <div className="min-h-full flex items-center justify-center p-6 md:p-10">
+        <div className="w-full max-w-lg">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-green-100 text-green-600 mb-4">
+              <FontAwesomeIcon icon={faCoins} className="text-2xl" />
+            </div>
+            <h1 className="my-0 text-3xl md:text-4xl text-slate-800">
+              Top up tokens
+            </h1>
+            <p className="mt-3 text-slate-500">
+              Tokens power AI blog generation. Each post costs 10 tokens.
+            </p>
+          </div>
+
+          <div className="mb-6 rounded-xl border border-slate-200 bg-white/80 backdrop-blur px-5 py-4 flex items-center justify-between shadow-sm">
+            <div>
+              <div className="text-sm text-slate-500">Current balance</div>
+              <div className="text-2xl font-bold text-slate-800 mt-0.5">
+                {props.availableTokens ?? 0}{" "}
+                <span className="text-base font-medium text-slate-500">
+                  tokens
+                </span>
+              </div>
+            </div>
+            <FontAwesomeIcon
+              icon={faCoins}
+              className="text-3xl text-yellow-500"
+            />
+          </div>
+
+          <div className="rounded-xl border border-slate-200 bg-white shadow-xl shadow-slate-200/60 overflow-hidden">
+            <div className="bg-gradient-to-r from-slate-800 to-cyan-800 px-6 py-5 text-white">
+              <div className="text-sm uppercase tracking-wider text-cyan-200">
+                Token pack
+              </div>
+              <div className="mt-1 flex items-end gap-2">
+                <span className="text-4xl font-bold">10</span>
+                <span className="pb-1 text-cyan-100">tokens</span>
+              </div>
+              <div className="mt-2 text-sm text-cyan-100/90 flex items-center gap-2">
+                <FontAwesomeIcon icon={faPenFancy} />
+                Enough for 1 full blog post
+              </div>
+            </div>
+
+            <div className="px-6 py-5 space-y-3">
+              {[
+                "Secure checkout with Stripe",
+                "Tokens added instantly after payment",
+                "Use anytime to generate SEO-ready posts",
+              ].map((item) => (
+                <div
+                  key={item}
+                  className="flex items-start gap-3 text-slate-600 text-sm"
+                >
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-600">
+                    <FontAwesomeIcon icon={faCheck} className="text-xs" />
+                  </span>
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="px-6 pb-6">
+              <button
+                type="button"
+                className="btn"
+                onClick={handleClick}
+                disabled={loading}
+              >
+                {loading ? "Redirecting to checkout..." : "Add tokens"}
+              </button>
+              <p className="mt-3 text-center text-xs text-slate-400">
+                You will be redirected to Stripe to complete payment.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
 
-// 设置 TokenTopup 的布局
-
-// page 表示页面组件的React元素，对应 TokenTopup() 组件
-// pageProps 表示传递给页面组件的属性，对应 getServerSideProps返回的props
 TokenTopup.getLayout = function getLayout(page, pageProps) {
   return <AppLayout {...pageProps}>{page}</AppLayout>;
 };
 
-// 导出 getServerSideProps 函数，用于处理服务端渲染
 export const getServerSideProps = withPageAuthRequired({
   async getServerSideProps(ctx) {
-    // 获取应用程序属性
     const props = await getAppProps(ctx);
-    // 返回应用程序属性
     return {
       props,
     };
   },
 });
-
-/*
-  TokenTopup.getLayout 与 getServerSideProps的作用: 
-
-  - TokenTopup.getLayout用于为TokenTopup页面定义自定义布局。
-
-  - getServerSideProps用于在服务器端获取页面数据，并在页面加载时传递这些数据。通过withPageAuthRequired包装，确保只有经过身份验证的用户才能访问该页面。
-*/
-
-/*
-  底层逻辑: 
-
-  第一步. getServerSideProps：在请求时运行，获取页面所需的数据，并返回一个包含props对象的对象。
-
-  第二步. props传递给页面组件：getServerSideProps返回的props对象会作为页面组件 TokenTopup 的属性。
-
-  第三步. getLayout函数：定义页面的布局。在这个函数中，pageProps包含了从getServerSideProps返回的props。
-
-  -------------------------------------------------------------------------------------------------------
-
-  综上所述，getServerSideProps返回的props会传递给页面组件 TokenTopup，然后通过getLayout函数，props会进一步传递给布局组件。
-  这种机制确保了页面在加载时能够接收到所有必要的数据，并且可以将这些数据传递给布局组件以便于渲染。
-*/

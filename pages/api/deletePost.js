@@ -30,8 +30,7 @@ export default withApiAuthRequired(async function handler(req, res) {
     // 返回成功响应
     res.status(200).json({ success: true });
   } catch (e) {
-    // 捕获错误并打印日志
     console.log('ERROR TRYING TO DELETE A POST: ', e);
+    res.status(500).json({ success: false, message: e.message });
   }
-  return;
 });
