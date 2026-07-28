@@ -43,6 +43,7 @@ export const PostsProvider = ({ children }) => {
   const [noMorePosts, setNoMorePosts] = useState(true);
   // 点过 Load more 后为 true；整页刷新时 Provider 重建会重置
   const [hasLoadedAll, setHasLoadedAll] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   const deletePost = useCallback((postId) => {
     dispatch({
@@ -80,28 +81,34 @@ export const PostsProvider = ({ children }) => {
   );
 
   const getPosts = useCallback(async ({ lastPostDate } = {}) => {
-    const result = await fetch(`/api/getPosts`, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-      },
-      body: JSON.stringify({ lastPostDate, loadAll: true }),
-    });
+    if (loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const result = await fetch(`/api/getPosts`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({ lastPostDate, loadAll: true }),
+      });
 
-    const json = await result.json();
-    const postsResult = (json.posts || []).map((post) => ({
-      ...post,
-      _id: post._id?.toString?.() ?? post._id,
-      created: post.created ? new Date(post.created).toISOString() : "",
-    }));
+      const json = await result.json();
+      const postsResult = (json.posts || []).map((post) => ({
+        ...post,
+        _id: post._id?.toString?.() ?? post._id,
+        created: post.created ? new Date(post.created).toISOString() : "",
+      }));
 
-    dispatch({
-      type: "addPosts",
-      posts: postsResult,
-    });
-    setNoMorePosts(true);
-    setHasLoadedAll(true);
-  }, []);
+      dispatch({
+        type: "addPosts",
+        posts: postsResult,
+      });
+      setNoMorePosts(true);
+      setHasLoadedAll(true);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [loadingMore]);
 
   return (
     <PostsContext.Provider
@@ -110,6 +117,7 @@ export const PostsProvider = ({ children }) => {
         setPostsFromSSR,
         getPosts,
         noMorePosts,
+        loadingMore,
         deletePost,
         deleteAllPosts,
       }}

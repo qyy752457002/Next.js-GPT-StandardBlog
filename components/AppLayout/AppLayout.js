@@ -3,6 +3,7 @@ import {
   faChevronDown,
   faCoins,
   faPlus,
+  faSpinner,
   faTrashCan,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -24,8 +25,14 @@ export const AppLayout = ({
   const router = useRouter();
   const [deletingAll, setDeletingAll] = useState(false);
 
-  const { setPostsFromSSR, posts, getPosts, noMorePosts, deleteAllPosts } =
-    useContext(PostsContext);
+  const {
+    setPostsFromSSR,
+    posts,
+    getPosts,
+    noMorePosts,
+    loadingMore,
+    deleteAllPosts,
+  } = useContext(PostsContext);
 
   useEffect(() => {
     setPostsFromSSR(postsFromSSR || [], hasMorePosts);
@@ -136,12 +143,17 @@ export const AppLayout = ({
             <button
               type="button"
               onClick={() => {
+                if (loadingMore) return;
                 getPosts({ lastPostDate: posts[posts.length - 1].created });
               }}
-              className="mt-4 w-full flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-semibold uppercase tracking-wider border border-cyan-400/40 text-cyan-100 bg-cyan-500/10 hover:bg-cyan-500/25 hover:border-cyan-300/60 transition-colors"
+              disabled={loadingMore}
+              className="mt-4 w-full flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-semibold uppercase tracking-wider border border-cyan-400/40 text-cyan-100 bg-cyan-500/10 hover:bg-cyan-500/25 hover:border-cyan-300/60 transition-colors disabled:opacity-70 disabled:cursor-wait disabled:hover:bg-cyan-500/10"
             >
-              <FontAwesomeIcon icon={faChevronDown} className="text-xs" />
-              Load more posts
+              <FontAwesomeIcon
+                icon={loadingMore ? faSpinner : faChevronDown}
+                className={`text-xs ${loadingMore ? "animate-spin" : ""}`}
+              />
+              {loadingMore ? "Loading..." : "Load more posts"}
             </button>
           )}
         </div>
