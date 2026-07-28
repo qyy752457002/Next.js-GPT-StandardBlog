@@ -1,45 +1,34 @@
-import { useRouter } from "next/router";
 import React, { useCallback, useReducer, useState } from "react";
 
-// 创建一个上下文，用于在整个应用中共享posts相关的数据和操作
 const PostsContext = React.createContext({});
 
 export default PostsContext;
 
-// 定义posts的reducer函数，用于处理不同的动作
+function sortByCreatedDesc(posts) {
+  return [...posts].sort((a, b) => {
+    const timeA = new Date(a.created).getTime() || 0;
+    const timeB = new Date(b.created).getTime() || 0;
+    return timeB - timeA;
+  });
+}
+
 function postsReducer(state, action) {
   switch (action.type) {
-    // 这儿的state代表的是当前posts的状态数组，action代表的是从组件中传递过来的动作
-
-    case "addPosts": {
-      // 处理添加新posts的动作
-      const newPosts = [...state];
-      /*
-            action里面的posts来自
-            
-            dispatch({
-              type: "addPosts",
-              posts: postsFromSSR,
-            });
-        */
-      action.posts.forEach((post) => {
-        // 检查新post是否已经存在，避免重复添加
-        const exists = newPosts.find((p) => p._id === post._id);
-        if (!exists) {
-          newPosts.push(post);
-        }
-      });
-      return newPosts;
+    case "replacePosts": {
+      return sortByCreatedDesc(action.posts || []);
     }
-
-    case "deletePost": {
-      const newPosts = [];
-      state.forEach((post) => {
-        if (post._id !== action.postId) {
-          newPosts.push(post);
+    case "addPosts": {
+      const merged = [...state];
+      (action.posts || []).forEach((post) => {
+        const exists = merged.find((p) => p._id === post._id);
+        if (!exists) {
+          merged.push(post);
         }
       });
-      return newPosts;
+      return sortByCreatedDesc(merged);
+    }
+    case "deletePost": {
+      return state.filter((post) => post._id !== action.postId);
     }
     case "deleteAllPosts": {
       return [];
@@ -49,15 +38,10 @@ function postsReducer(state, action) {
   }
 }
 
-// 定义PostsProvider组件，用于提供posts相关的上下文数据
 export const PostsProvider = ({ children }) => {
-  // 使用useReducer来管理posts状态
-  // 初始状态为空数组 []，因为还没有任何posts
   const [posts, dispatch] = useReducer(postsReducer, []);
-  // 使用useState来管理是否没有更多posts的状态
-  const [noMorePosts, setNoMorePosts] = useState(false);
+  const [noMorePosts, setNoMorePosts] = useState(true);
 
-  // 定义deletePost回调，用于删除指定的post
   const deletePost = useCallback((postId) => {
     dispatch({
       type: "deletePost",
@@ -72,38 +56,40 @@ export const PostsProvider = ({ children }) => {
     setNoMorePosts(true);
   }, []);
 
-  // 定义setPostsFromSSR回调，用于设置从服务器端渲染获取的posts
-  const setPostsFromSSR = useCallback((postsFromSSR = []) => {
+  // SSR：始终重置为最新一批（最多 5 条），不与旧状态合并
+  const setPostsFromSSR = useCallback((postsFromSSR = [], hasMorePosts = false) => {
     dispatch({
-      type: "addPosts",
+      type: "replacePosts",
       posts: postsFromSSR,
     });
+    setNoMorePosts(!hasMorePosts);
   }, []);
 
-  // 定义getPosts回调，用于从服务器获取posts
-  const getPosts = useCallback(
-    async ({ lastPostDate, getNewerPosts = false }) => {
-      const result = await fetch(`/api/getPosts`, {
-        method: "POST",
-        headers: {
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({ lastPostDate, getNewerPosts }),
-      });
+  // Load more：拉取剩余全部帖子
+  const getPosts = useCallback(async ({ lastPostDate } = {}) => {
+    const result = await fetch(`/api/getPosts`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ lastPostDate, loadAll: true }),
+    });
 
-      const json = await result.json();
-      const postsResult = json.posts || [];
+    const json = await result.json();
+    const postsResult = (json.posts || []).map((post) => ({
+      ...post,
+      _id: post._id?.toString?.() ?? post._id,
+      created: post.created
+        ? new Date(post.created).toISOString()
+        : "",
+    }));
 
-      if (postsResult.length < 5) {
-        setNoMorePosts(true);
-      }
-      dispatch({
-        type: "addPosts",
-        posts: postsResult,
-      });
-    },
-    []
-  );
+    dispatch({
+      type: "addPosts",
+      posts: postsResult,
+    });
+    setNoMorePosts(true);
+  }, []);
 
   return (
     <PostsContext.Provider

@@ -1,5 +1,6 @@
 import { useUser } from "@auth0/nextjs-auth0/client";
 import {
+  faChevronDown,
   faCoins,
   faPlus,
   faTrashCan,
@@ -17,7 +18,7 @@ export const AppLayout = ({
   availableTokens,
   posts: postsFromSSR,
   postId,
-  postCreated,
+  hasMorePosts = false,
 }) => {
   const { user, isLoading } = useUser();
   const router = useRouter();
@@ -27,14 +28,8 @@ export const AppLayout = ({
     useContext(PostsContext);
 
   useEffect(() => {
-    setPostsFromSSR(postsFromSSR);
-    if (postId) {
-      const exists = postsFromSSR.find((post) => post._id === postId);
-      if (!exists) {
-        getPosts({ getNewerPosts: true, lastPostDate: postCreated });
-      }
-    }
-  }, [postsFromSSR, setPostsFromSSR, postId, postCreated, getPosts]);
+    setPostsFromSSR(postsFromSSR || [], hasMorePosts);
+  }, [postsFromSSR, hasMorePosts, setPostsFromSSR]);
 
   const handleDeleteAll = async () => {
     if (!posts.length || deletingAll) return;
@@ -143,8 +138,9 @@ export const AppLayout = ({
               onClick={() => {
                 getPosts({ lastPostDate: posts[posts.length - 1].created });
               }}
-              className="mt-4 w-full text-sm text-cyan-200/80 hover:text-white transition-colors py-2"
+              className="mt-4 w-full flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-semibold uppercase tracking-wider border border-cyan-400/40 text-cyan-100 bg-cyan-500/10 hover:bg-cyan-500/25 hover:border-cyan-300/60 transition-colors"
             >
+              <FontAwesomeIcon icon={faChevronDown} className="text-xs" />
               Load more posts
             </button>
           )}

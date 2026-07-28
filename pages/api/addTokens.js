@@ -1,48 +1,58 @@
-// 导入获取会话的函数
-import { getSession } from '@auth0/nextjs-auth0';
-// 导入MongoDB客户端
-import clientPromise from '../../lib/mongodb';
-// 导入Stripe初始化
-import stripeInit from 'stripe'
+import { getSession } from "@auth0/nextjs-auth0";
+import stripeInit from "stripe";
+import { getPackPriceId, getTokenPack } from "../../lib/tokenPacks";
 
-// 初始化Stripe
 const stripe = stripeInit(process.env.STRIPE_SECRET_KEY);
 
-// 导出函数
 export default async function handler(req, res) {
-  // 获取会话
-  const { user } = await getSession(req, res);
+  if (req.method !== "POST") {
+    res.setHeader("Allow", "POST");
+    return res.status(405).json({ message: "Method not allowed" });
+  }
 
-  // 创建lineItems
-  const lineItems = [{
-    price: process.env.STRIPE_PRODUCT_PRICE_ID,
-    quantity: 1,
-  }];
+  const session = await getSession(req, res);
+  if (!session?.user) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
 
-  // 判断环境
-  const protocol = process.env.NODE_ENV === 'development' ? 'http://' : 'https://';
-  // 获取请求头中的host
-  const host = req.headers.host; 
+  const { user } = session;
+  const packId = req.body?.pack;
+  const pack = getTokenPack(packId);
+  const priceId = getPackPriceId(packId);
 
-  // 创建支付会话
+  if (!pack || !priceId || !priceId.startsWith("price_")) {
+    return res.status(400).json({
+      message:
+        "Invalid pack. Use basic, plus, or pro, and ensure STRIPE_PRICE_*_ID are Stripe Price ids (price_...).",
+    });
+  }
+
+  const protocol =
+    process.env.NODE_ENV === "development" ? "http://" : "https://";
+  const host = req.headers.host;
+
   const checkoutSession = await stripe.checkout.sessions.create({
-    line_items: lineItems,
+    line_items: [
+      {
+        price: priceId,
+        quantity: 1,
+      },
+    ],
     mode: "payment",
     success_url: `${protocol}${host}/success`,
     payment_intent_data: {
       metadata: {
         sub: user.sub,
+        tokens: String(pack.tokens),
+        pack: pack.id,
       },
     },
     metadata: {
       sub: user.sub,
+      tokens: String(pack.tokens),
+      pack: pack.id,
     },
   });
 
-  // 打印用户
-  console.log('user: ', user);
-
-  // 返回会话
   res.status(200).json({ session: checkoutSession });
 }
-
