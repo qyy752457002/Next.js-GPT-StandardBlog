@@ -19,7 +19,7 @@ export const AppLayout = ({
   postId,
   postCreated,
 }) => {
-  const { user } = useUser();
+  const { user, isLoading } = useUser();
   const router = useRouter();
   const [deletingAll, setDeletingAll] = useState(false);
 
@@ -150,9 +150,17 @@ export const AppLayout = ({
           )}
         </div>
 
-        <div className="border-t border-white/10 bg-black/20 px-4 py-3">
-          {!!user ? (
-            <div className="flex items-center gap-3">
+        <div className="border-t border-white/10 bg-black/20 px-4 py-3 min-h-[66px] flex items-center">
+          {isLoading ? (
+            <div className="flex items-center gap-3 w-full animate-pulse">
+              <div className="h-[42px] w-[42px] rounded-full bg-white/10 shrink-0" />
+              <div className="flex-1 min-w-0 space-y-2">
+                <div className="h-3.5 w-3/4 rounded bg-white/10" />
+                <div className="h-3 w-1/3 rounded bg-white/10" />
+              </div>
+            </div>
+          ) : user ? (
+            <div className="flex items-center gap-3 w-full">
               <div className="relative shrink-0">
                 <Image
                   src={user.picture}
