@@ -64,7 +64,14 @@ export const getServerSideProps = withPageAuthRequired({
         const belongsToUser =
           checkoutSession.metadata?.sub === userSession.user.sub;
 
-        if (paid && belongsToUser) {
+        if (!paid) {
+          console.log("SUCCESS SKIP: unpaid session", sessionId);
+        } else if (!belongsToUser) {
+          console.log("SUCCESS SKIP: metadata.sub mismatch", {
+            sessionSub: checkoutSession.metadata?.sub,
+            userSub: userSession.user.sub,
+          });
+        } else {
           let paymentIntent = checkoutSession.payment_intent;
 
           if (typeof paymentIntent === "string") {
@@ -72,13 +79,16 @@ export const getServerSideProps = withPageAuthRequired({
           }
 
           if (paymentIntent?.id) {
-            await fulfillTokensFromPaymentIntent({
+            const result = await fulfillTokensFromPaymentIntent({
               id: paymentIntent.id,
               metadata: {
                 ...checkoutSession.metadata,
                 ...paymentIntent.metadata,
               },
             });
+            console.log("SUCCESS TOKEN FULFILLMENT:", result, paymentIntent.id);
+          } else {
+            console.log("SUCCESS SKIP: missing payment_intent", sessionId);
           }
         }
       } catch (error) {
