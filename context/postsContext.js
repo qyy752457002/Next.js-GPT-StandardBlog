@@ -41,6 +41,8 @@ function postsReducer(state, action) {
 export const PostsProvider = ({ children }) => {
   const [posts, dispatch] = useReducer(postsReducer, []);
   const [noMorePosts, setNoMorePosts] = useState(true);
+  // 点过 Load more 后为 true；整页刷新时 Provider 重建会重置
+  const [hasLoadedAll, setHasLoadedAll] = useState(false);
 
   const deletePost = useCallback((postId) => {
     dispatch({
@@ -54,18 +56,29 @@ export const PostsProvider = ({ children }) => {
       type: "deleteAllPosts",
     });
     setNoMorePosts(true);
+    setHasLoadedAll(true);
   }, []);
 
-  // SSR：始终重置为最新一批（最多 5 条），不与旧状态合并
-  const setPostsFromSSR = useCallback((postsFromSSR = [], hasMorePosts = false) => {
-    dispatch({
-      type: "replacePosts",
-      posts: postsFromSSR,
-    });
-    setNoMorePosts(!hasMorePosts);
-  }, []);
+  const setPostsFromSSR = useCallback(
+    (postsFromSSR = [], hasMorePosts = false) => {
+      // 已展开全部：切换帖子时不重置列表、不把 Load more 再显示出来
+      if (hasLoadedAll) {
+        dispatch({
+          type: "addPosts",
+          posts: postsFromSSR,
+        });
+        return;
+      }
 
-  // Load more：拉取剩余全部帖子
+      dispatch({
+        type: "replacePosts",
+        posts: postsFromSSR,
+      });
+      setNoMorePosts(!hasMorePosts);
+    },
+    [hasLoadedAll]
+  );
+
   const getPosts = useCallback(async ({ lastPostDate } = {}) => {
     const result = await fetch(`/api/getPosts`, {
       method: "POST",
@@ -79,9 +92,7 @@ export const PostsProvider = ({ children }) => {
     const postsResult = (json.posts || []).map((post) => ({
       ...post,
       _id: post._id?.toString?.() ?? post._id,
-      created: post.created
-        ? new Date(post.created).toISOString()
-        : "",
+      created: post.created ? new Date(post.created).toISOString() : "",
     }));
 
     dispatch({
@@ -89,6 +100,7 @@ export const PostsProvider = ({ children }) => {
       posts: postsResult,
     });
     setNoMorePosts(true);
+    setHasLoadedAll(true);
   }, []);
 
   return (
