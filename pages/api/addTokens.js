@@ -1,6 +1,11 @@
 import { getSession } from "@auth0/nextjs-auth0";
 import stripeInit from "stripe";
-import { getPackPriceId, getTokenPack } from "../../lib/tokenPacks";
+import {
+  getPackPriceId,
+  getTokenPack,
+  MAX_PACK_QUANTITY,
+  MIN_PACK_QUANTITY,
+} from "../../lib/tokenPacks";
 
 const stripe = stripeInit(process.env.STRIPE_SECRET_KEY);
 
@@ -17,6 +22,7 @@ export default async function handler(req, res) {
 
   const { user } = session;
   const packId = req.body?.pack;
+  const quantity = Number.parseInt(req.body?.quantity, 10);
   const pack = getTokenPack(packId);
   const priceId = getPackPriceId(packId);
 
@@ -27,6 +33,17 @@ export default async function handler(req, res) {
     });
   }
 
+  if (
+    !Number.isInteger(quantity) ||
+    quantity < MIN_PACK_QUANTITY ||
+    quantity > MAX_PACK_QUANTITY
+  ) {
+    return res.status(400).json({
+      message: `Quantity must be an integer between ${MIN_PACK_QUANTITY} and ${MAX_PACK_QUANTITY}`,
+    });
+  }
+
+  const tokens = pack.tokens * quantity;
   const protocol =
     process.env.NODE_ENV === "development" ? "http://" : "https://";
   const host = req.headers.host;
@@ -35,7 +52,7 @@ export default async function handler(req, res) {
     line_items: [
       {
         price: priceId,
-        quantity: 1,
+        quantity,
       },
     ],
     mode: "payment",
@@ -43,14 +60,16 @@ export default async function handler(req, res) {
     payment_intent_data: {
       metadata: {
         sub: user.sub,
-        tokens: String(pack.tokens),
+        tokens: String(tokens),
         pack: pack.id,
+        quantity: String(quantity),
       },
     },
     metadata: {
       sub: user.sub,
-      tokens: String(pack.tokens),
+      tokens: String(tokens),
       pack: pack.id,
+      quantity: String(quantity),
     },
   });
 

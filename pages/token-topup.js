@@ -1,16 +1,42 @@
 import { withPageAuthRequired } from "@auth0/nextjs-auth0";
-import { faCheck, faCoins } from "@fortawesome/free-solid-svg-icons";
+import {
+  faCheck,
+  faCoins,
+  faMinus,
+  faPlus,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
 import { AppLayout } from "../components/AppLayout";
-import { TOKEN_PACKS, TOKENS_PER_POST } from "../lib/tokenPacks";
+import {
+  MAX_PACK_QUANTITY,
+  MIN_PACK_QUANTITY,
+  TOKEN_PACKS,
+  TOKENS_PER_POST,
+} from "../lib/tokenPacks";
 import { getAppProps } from "../utils/getAppProps";
+
+const initialQuantities = Object.fromEntries(
+  TOKEN_PACKS.map((pack) => [pack.id, 1])
+);
 
 export default function TokenTopup(props) {
   const [loadingPack, setLoadingPack] = useState(null);
+  const [quantities, setQuantities] = useState(initialQuantities);
+
+  const adjustQuantity = (packId, delta) => {
+    setQuantities((prev) => ({
+      ...prev,
+      [packId]: Math.min(
+        MAX_PACK_QUANTITY,
+        Math.max(MIN_PACK_QUANTITY, (prev[packId] || 1) + delta)
+      ),
+    }));
+  };
 
   const handleBuy = async (packId) => {
     if (loadingPack) return;
+    const quantity = quantities[packId] || 1;
     try {
       setLoadingPack(packId);
       const result = await fetch(`/api/addTokens`, {
@@ -18,7 +44,7 @@ export default function TokenTopup(props) {
         headers: {
           "content-type": "application/json",
         },
-        body: JSON.stringify({ pack: packId }),
+        body: JSON.stringify({ pack: packId, quantity }),
       });
       const json = await result.json();
       if (json?.session?.url) {
@@ -70,8 +96,12 @@ export default function TokenTopup(props) {
 
           <div className="grid gap-5 md:grid-cols-3">
             {TOKEN_PACKS.map((pack) => {
+              const quantity = quantities[pack.id] || 1;
+              const totalTokens = pack.tokens * quantity;
+              const totalPrice = pack.unitPrice * quantity;
               const isLoading = loadingPack === pack.id;
               const isFeatured = pack.id === "pro";
+              const postsWorth = totalTokens / TOKENS_PER_POST;
 
               return (
                 <div
@@ -100,7 +130,7 @@ export default function TokenTopup(props) {
                     </div>
                     <div className="mt-1 flex items-end gap-2">
                       <span className="text-4xl font-bold">{pack.tokens}</span>
-                      <span className="pb-1 text-cyan-100">tokens</span>
+                      <span className="pb-1 text-cyan-100">tokens each</span>
                     </div>
                     <div className="mt-3 flex items-baseline gap-2">
                       <span className="text-2xl font-bold">{pack.priceLabel}</span>
@@ -109,18 +139,56 @@ export default function TokenTopup(props) {
                           {pack.compareAtLabel}
                         </span>
                       )}
+                      <span className="text-sm text-cyan-100/80">/ pack</span>
                     </div>
                     <p className="mt-2 text-sm text-cyan-100/90">
                       {pack.description}
                     </p>
                   </div>
 
-                  <div className="px-5 py-4 space-y-2.5 flex-1">
+                  <div className="px-5 py-4 space-y-4 flex-1">
+                    <div>
+                      <div className="text-sm font-semibold text-slate-700 mb-2">
+                        Quantity
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => adjustQuantity(pack.id, -1)}
+                          disabled={
+                            quantity <= MIN_PACK_QUANTITY || !!loadingPack
+                          }
+                          className="flex h-10 w-10 items-center justify-center rounded-md border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                          aria-label={`Decrease ${pack.name} quantity`}
+                        >
+                          <FontAwesomeIcon icon={faMinus} />
+                        </button>
+                        <div className="min-w-[2.5rem] text-center text-2xl font-bold text-slate-800">
+                          {quantity}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => adjustQuantity(pack.id, 1)}
+                          disabled={
+                            quantity >= MAX_PACK_QUANTITY || !!loadingPack
+                          }
+                          className="flex h-10 w-10 items-center justify-center rounded-md border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                          aria-label={`Increase ${pack.name} quantity`}
+                        >
+                          <FontAwesomeIcon icon={faPlus} />
+                        </button>
+                      </div>
+                      <div className="mt-2 text-sm text-slate-600">
+                        Total: <strong>{totalTokens}</strong> tokens ·{" "}
+                        <strong>${totalPrice}</strong>
+                      </div>
+                    </div>
+
                     {[
                       "Secure checkout with Stripe",
                       "Tokens added instantly after payment",
-                      `${pack.tokens / TOKENS_PER_POST} post${
-                        pack.tokens / TOKENS_PER_POST > 1 ? "s" : ""
+                      `${postsWorth} post${
+                        postsWorth > 1 ? "s" : ""
                       } worth of generation`,
                     ].map((item) => (
                       <div
@@ -144,7 +212,7 @@ export default function TokenTopup(props) {
                     >
                       {isLoading
                         ? "Redirecting to checkout..."
-                        : `Buy ${pack.name}`}
+                        : `Buy ${quantity} × ${pack.name}`}
                     </button>
                   </div>
                 </div>
