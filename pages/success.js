@@ -1,9 +1,13 @@
-import { withPageAuthRequired } from "@auth0/nextjs-auth0";
+import { getSession, withPageAuthRequired } from "@auth0/nextjs-auth0";
 import { faCheckCircle, faCoins } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
+import stripeInit from "stripe";
 import { AppLayout } from "../components/AppLayout";
+import { fulfillTokensFromPaymentIntent } from "../lib/fulfillTokens";
 import { getAppProps } from "../utils/getAppProps";
+
+const stripe = stripeInit(process.env.STRIPE_SECRET_KEY);
 
 export default function Success(props) {
   return (
@@ -42,6 +46,46 @@ Success.getLayout = function getLayout(page, pageProps) {
 
 export const getServerSideProps = withPageAuthRequired({
   async getServerSideProps(ctx) {
+    const sessionId = ctx.query.session_id;
+    const userSession = await getSession(ctx.req, ctx.res);
+
+    // Stripe redirects here before the webhook may have credited tokens.
+    // Fulfill idempotently from the Checkout Session so balance is current.
+    if (typeof sessionId === "string" && sessionId && userSession?.user?.sub) {
+      try {
+        const checkoutSession = await stripe.checkout.sessions.retrieve(
+          sessionId,
+          { expand: ["payment_intent"] }
+        );
+
+        const paid =
+          checkoutSession.payment_status === "paid" ||
+          checkoutSession.status === "complete";
+        const belongsToUser =
+          checkoutSession.metadata?.sub === userSession.user.sub;
+
+        if (paid && belongsToUser) {
+          let paymentIntent = checkoutSession.payment_intent;
+
+          if (typeof paymentIntent === "string") {
+            paymentIntent = await stripe.paymentIntents.retrieve(paymentIntent);
+          }
+
+          if (paymentIntent?.id) {
+            await fulfillTokensFromPaymentIntent({
+              id: paymentIntent.id,
+              metadata: {
+                ...checkoutSession.metadata,
+                ...paymentIntent.metadata,
+              },
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Failed to sync tokens from Checkout Session:", error);
+      }
+    }
+
     const props = await getAppProps(ctx);
     return {
       props,

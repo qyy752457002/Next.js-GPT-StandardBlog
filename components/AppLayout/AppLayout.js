@@ -186,7 +186,7 @@ export const AppLayout = ({
                   {user.email}
                 </div>
                 <Link
-                  className="text-xs text-cyan-200/80 hover:text-white transition-colors"
+                  className="text-sm text-red-500 hover:text-red-400 transition-colors"
                   href="/api/auth/logout"
                 >
                   Logout

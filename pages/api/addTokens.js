@@ -56,7 +56,7 @@ export default async function handler(req, res) {
       },
     ],
     mode: "payment",
-    success_url: `${protocol}${host}/success`,
+    success_url: `${protocol}${host}/success?session_id={CHECKOUT_SESSION_ID}`,
     payment_intent_data: {
       metadata: {
         sub: user.sub,

@@ -1,7 +1,7 @@
 import Cors from "micro-cors";
 import stripeInit from "stripe";
 import verifyStripe from "@webdeveducation/next-verify-stripe";
-import clientPromise from "../../../lib/mongodb";
+import { fulfillTokensFromPaymentIntent } from "../../../lib/fulfillTokens";
 
 const cors = Cors({
   allowMethods: ["POST", "HEAD"],
@@ -32,36 +32,9 @@ const handler = async (req, res) => {
 
     switch (event.type) {
       case "payment_intent.succeeded": {
-        const client = await clientPromise;
-        const db = client.db("BlogStandard");
-
         const paymentIntent = event.data.object;
-        const auth0Id = paymentIntent.metadata?.sub;
-        const tokens = Number.parseInt(paymentIntent.metadata?.tokens, 10);
-
-        if (!auth0Id || !Number.isInteger(tokens) || tokens <= 0) {
-          console.log("INVALID METADATA: ", paymentIntent.metadata);
-          break;
-        }
-
-        console.log("AUTH 0 ID: ", paymentIntent);
-
-        await db.collection("users").updateOne(
-          {
-            auth0Id,
-          },
-          {
-            $inc: {
-              availableTokens: tokens,
-            },
-            $setOnInsert: {
-              auth0Id,
-            },
-          },
-          {
-            upsert: true,
-          }
-        );
+        const result = await fulfillTokensFromPaymentIntent(paymentIntent);
+        console.log("TOKEN FULFILLMENT: ", result, paymentIntent.id);
         break;
       }
       default:
