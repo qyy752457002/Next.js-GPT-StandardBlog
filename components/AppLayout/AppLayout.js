@@ -1,5 +1,6 @@
 import { useUser } from "@auth0/nextjs-auth0/client";
 import {
+  faArrowRightFromBracket,
   faChevronDown,
   faCoins,
   faPlus,
@@ -158,40 +159,48 @@ export const AppLayout = ({
           )}
         </div>
 
-        <div className="border-t border-white/10 bg-black/20 px-4 py-3 min-h-[66px] flex items-center">
+        <div className="border-t border-white/10 bg-black/25 px-3 py-3">
           {isLoading ? (
-            <div className="flex items-center gap-3 w-full animate-pulse">
-              <div className="h-[42px] w-[42px] rounded-full bg-white/10 shrink-0" />
+            <div className="flex items-center gap-3 rounded-xl bg-white/5 border border-white/10 px-3 py-2.5 w-full animate-pulse">
+              <div className="h-10 w-10 rounded-full bg-white/10 shrink-0" />
               <div className="flex-1 min-w-0 space-y-2">
-                <div className="h-3.5 w-3/4 rounded bg-white/10" />
-                <div className="h-3 w-1/3 rounded bg-white/10" />
+                <div className="h-2.5 w-1/3 rounded bg-white/10" />
+                <div className="h-3.5 w-2/3 rounded bg-white/10" />
               </div>
+              <div className="h-8 w-16 rounded-md bg-white/10 shrink-0" />
             </div>
           ) : user ? (
-            <div className="flex items-center gap-3 w-full">
+            <div className="flex items-center gap-3 rounded-xl bg-white/5 border border-white/10 px-3 py-2.5 shadow-sm shadow-black/20">
               <div className="relative shrink-0">
                 <Image
                   src={user.picture}
                   alt={user.name || "User"}
-                  height={42}
-                  width={42}
-                  className="rounded-full ring-2 ring-white/20"
+                  height={40}
+                  width={40}
+                  className="rounded-full ring-2 ring-cyan-400/35"
                 />
               </div>
               <div className="flex-1 min-w-0">
+                <div className="text-[11px] uppercase tracking-wider text-slate-400">
+                  Signed in
+                </div>
                 <div
                   className="text-sm font-semibold text-white truncate"
                   title={user.email}
                 >
                   {user.email}
                 </div>
-                <Link
-                  className="text-sm text-red-500 hover:text-red-400 transition-colors"
-                  href="/api/auth/logout"
-                >
-                  Logout
-                </Link>
               </div>
+              <Link
+                href="/api/auth/logout"
+                className="shrink-0 inline-flex items-center gap-1.5 rounded-md border border-white/15 bg-white/10 px-3 py-1.5 text-sm font-extrabold text-white no-underline hover:bg-white/20 hover:border-white/25 hover:no-underline transition-colors"
+              >
+                <FontAwesomeIcon
+                  icon={faArrowRightFromBracket}
+                  className="text-xs opacity-90"
+                />
+                Logout
+              </Link>
             </div>
           ) : (
             <Link
