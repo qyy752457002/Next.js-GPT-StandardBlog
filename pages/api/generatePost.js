@@ -2,6 +2,10 @@ import { getSession, withApiAuthRequired } from "@auth0/nextjs-auth0"; // 从Aut
 import { Configuration, OpenAIApi } from "openai"; // 从OpenAI库中导入配置和API
 import clientPromise from "../../lib/mongodb"; // 导入MongoDB客户端
 
+export const config = {
+  maxDuration: 60, // 设置为 Hobby 计划的最高上限 60 秒
+};
+
 // 定义重试机制的辅助函数
 async function retryRequest(requestFunction, retries = 10, delay = 1000) {
   for (let i = 0; i < retries; i++) {
