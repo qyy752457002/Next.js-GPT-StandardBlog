@@ -3,7 +3,7 @@ import "../styles/globals.css";
 // 导入Auth0的UserProvider
 import { UserProvider } from "@auth0/nextjs-auth0/client";
 // 导入Google字体
-import { DM_Sans, DM_Serif_Display } from "@next/font/google";
+import { DM_Sans, DM_Serif_Display } from "next/font/google";
 // 导入FontAwesome的样式
 import "@fortawesome/fontawesome-svg-core/styles.css";
 // 导入FontAwesome的配置
