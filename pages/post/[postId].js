@@ -160,7 +160,8 @@ export const getServerSideProps = withPageAuthRequired({
 
   - Post.getLayout用于为Post页面定义自定义布局。
 
-  - getServerSideProps用于在服务器端获取页面数据，并在页面加载时传递这些数据。通过withPageAuthRequired包装，确保只有经过身份验证的用户才能访问该页面。
+  - getServerSideProps用于在服务器端获取页面数据，并在页面加载时传递这些数据。
+    通过 withPageAuthRequired 包装，确保只有经过身份验证的用户才能访问该页面。
 */
 
 /*
